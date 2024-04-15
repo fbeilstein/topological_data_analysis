@@ -12,7 +12,6 @@ class Alphabet{
       this.alphabet = new Set();
       for(let label of labels)
       {
-        console.log(label)
         this.alphabet.add(label)
       }
   }
@@ -233,8 +232,6 @@ canvas.addEventListener('mousemove', function(event) {
     }    
   }
 });
-
-
 canvas.addEventListener('dblclick', function(event) {
   let x = event.x;
   let y = event.y;
@@ -259,3 +256,264 @@ button.addEventListener('click', function(event) {
     out_triangles.push(triangles[i].vertices[0].label+triangles[i].vertices[1].label+triangles[i].vertices[2].label)
   calculate(out_triangles);
 });
+
+///////////////////////////////////////
+
+function my_print(message){
+  console.log(message)
+}
+
+function set_triangles(tt){
+   let triangles = []
+   for (let t of tt){
+      my_print(t.split("").sort().join(""))
+      triangles.push(t.split("").sort().join(""))
+   }
+   my_print('triangles : ' + triangles.toString())
+   return triangles
+}
+
+
+function get_complex(tt){
+   let parts = new Set()
+   for (let t of tt)
+       [t, t[0], t[1], t[2], [t[0],t[1]].sort().join(""),[t[1],t[2]].sort().join(""), [t[0],t[2]].sort().join("")].forEach(x=>parts.add(x))
+   let complex_ = [...parts].sort()
+   my_print('complexes : ' + complex_.toString())
+   return complex_
+}
+
+function get_chain_order(complex, order){
+   let chain = complex.filter((c) => c.length == order+1);
+   my_print('{order}-chain : ' + chain.toString());
+   return chain;
+}
+   
+function get_span(tt){
+   let string = "";
+   for (i in tt)
+       string  += (tt[i][0]=="-" ? "-" : "+") + 'x'+(i).toString()+'*'+(tt[i]).toString();
+   my_print("span    :"+string);
+   return tt;
+}
+
+
+function calculate_boundary(tt, space="ker"){
+   let n = tt.length;
+   let matrix = {};
+   for(let i=0; i<n; ++i)
+       for(let j=0; j<tt[i].length; ++j){
+           let x = tt[i].slice(0,j).concat(tt[i].slice(j+1));
+           if (x=='') continue;
+           if(matrix[x]==undefined)
+               matrix[x] = (Array(n)).fill(0);
+           matrix[x][i] += (j%2==0 ? 1 : -1);
+       }
+
+   let m = [];
+   for(let key in matrix)
+       m.push(matrix[key]);
+    return m;
+}
+///////////////////////////////////////
+function z_div(a, b) {
+  var remainder = a % b;
+  var aIsInfinite = a === -Infinity || a === Infinity;
+  var bIsInfinite = b === -Infinity || b === Infinity;
+  var aIsNeg = a + 1 / a < 0;
+  var bIsNeg = b + 1 / b < 0;
+  return [
+    (aIsInfinite !== bIsInfinite && a) ? aIsInfinite ? NaN : aIsNeg === bIsNeg ? 0 : -1 : Math.floor(a / b),
+    (!a && b < 0) ? -0 : remainder + (remainder !== 0 && aIsNeg !== bIsNeg ? b : 0)
+  ];
+}
+
+function z_gcdex(a, b){
+  if (a==0 && b==0) return [0, 1, 0];
+  if (a==0) return [0, parseInt(b/Math.abs(b)), Math.abs(b)];
+  if (b==0) return [parseInt(a/Math.abs(a)), 0, Math.abs(a)];
+
+  let x_sign = undefined;
+  if (a < 0){
+    a = -a;
+    x_sign = -1;
+  }
+  else{
+    x_sign = 1;
+  }
+
+  let y_sign = undefined;
+  if (b < 0){
+    b = -b;
+    y_sign = -1;
+  }
+  else{
+    y_sign = 1
+  }
+
+
+  let c = undefined;
+  let q = undefined;
+  let x = 1;
+  let y = 0;
+  let r = 0;
+  let s = 1;
+  while (b!=0){
+    [c, q] = [a % b, parseInt(a / b)];
+    [a, b, r, s, x, y] = [b, c, x - q*r, y - q*s, r, s];  
+  }
+  return [x * x_sign, y * y_sign, a];
+}
+
+
+
+function add_columns(m, i, j, a, b, c, d){
+  for(let k=0; k<m.length; ++k){
+      let e = m[k][i];
+      m[k][i] = a*e + b*m[k][j];
+      m[k][j] = c*e + d*m[k][j];
+  }
+}
+
+
+function add_rows(m, i, j, a, b, c, d){
+  for (let k=0; k<m[0].length; ++k) {
+    let e = m[i][k];
+    m[i][k] = a*e + b*m[j][k];
+    m[j][k] = c*e + d*m[j][k];
+  }
+}
+
+function clear_column(m){
+  if(m[0][0] == 0) return m;
+  let pivot = m[0][0];
+  for (let j=1; j<m.length; ++j){
+    if (m[j][0] == 0) continue;
+    let d = undefined;
+    let r = undefined;
+    [d, r] = z_div(m[j][0], pivot)
+    if (r==0){
+        add_rows(m, 0, j, 1, 0, -d, 1);
+    }
+    else{
+        let a = undefined;
+        let b = undefined;
+        let g = undefined;
+        [a, b, g] = z_gcdex(pivot, m[j][0]);
+        let d_0 = z_div(m[j][0], g)[0];
+        let d_j = z_div(pivot, g)[0];
+        add_rows(m, 0, j, a, b, d_0, -d_j);
+        pivot = g;
+    }
+  }
+  return m;
+}
+
+function clear_row(m){
+  if (m[0][0] == 0) return m;
+  let pivot = m[0][0];
+  for(let j=1; j<m[0].length; ++j){
+    if (m[0][j] == 0) continue;
+    let d = undefined;
+    let r = undefined;
+    [d, r] = z_div(m[0][j], pivot)
+    if (r==0){
+        add_columns(m, 0, j, 1, 0, -d, 1)
+    }
+    else{
+        let a = undefined;
+        let b = undefined;
+        let g = undefined;
+        [a, b, g] = z_gcdex(pivot, m[0][j]);
+        let d_0 = z_div(m[0][j], g)[0];
+        let d_j = z_div(pivot, g)[0];
+        add_columns(m, 0, j, a, b, d_0, -d_j);
+        pivot = g;
+    }
+  }
+  return m;
+}
+
+function invariant_factors(m){
+  if (m.length==0 || m[0].length==0) return [];
+  let ind = [];
+  for(let i=0; i<m.length; ++i)
+    if(m[i][0]!=0) ind.push(i)
+
+  if (ind.length>0 && ind[0] != 0){
+    [m[0], m[ind[0]]] = [m[ind[0]], m[0]];
+  }
+  else{
+    let ind = [];
+    for(let j=0; j<m[0].length; ++j)
+      if(m[0][j] != 0) ind.push(j)
+    
+    if (ind.length>0 && ind[0] != 0){
+      for(let r=0; r<m.length; ++r){
+        [m[r][0], m[r][ind[0]]] = [m[r][ind[0]], m[r][0]];
+      }
+    }
+  }
+
+  while (true){
+    let result = false;
+    for (let i=1; i<m[0].length; ++i)
+      result |= (m[0][i] != 0);
+
+    for (let i=1; i<m.length; ++i)  
+      result |= (m[i][0] != 0);
+
+    if(!result) break;
+    m = clear_column(m);
+    m = clear_row(m);
+  }
+
+  let invs = undefined;
+  if (m.length==1 || m[0].length==1){
+    invs = [];
+  }
+  else{
+    let lower_right = [];
+    for(let i=1; i<m.length; ++i){
+      let row = [];
+      for(let j=1; j<m[0].length; ++j)
+        row.push(m[i][j]);
+      lower_right.push(row);
+    }
+    invs = invariant_factors(lower_right);
+  }
+
+  let result = [];
+  if (m[0][0]!=0){
+    result = [m[0][0]];
+    result.push(...invs);
+    for (let i=0; i<result.length-1; ++i){
+      if (result[i] && z_div(result[i+1], result[i])[1] != 0){
+          let g = z_gcdex(result[i+1], result[i])[2];
+          result[i+1] = z_div(result[i], g)[0] * result[i+1];
+          result[i] = g;
+        }
+        else
+          break;
+      }
+  }
+  else{
+    invs.push(m[0][0]);
+    result = invs;
+  }
+  return result;
+}
+
+
+T_klein = set_triangles(["ABC", "ABF", "BDF", "BGC", "DFC", "DGC", "CFE", "FHE",
+                   "AFH", "ADH", "AGD", "AEG", "ACE", "HDB", "HBE", "BEG"]); 
+
+
+K = get_complex(T_klein);
+
+
+
+C1 = get_chain_order(K, 2);
+x = calculate_boundary(get_span(C1), "∂C1");
+console.log(x)
+console.log(invariant_factors(x))
