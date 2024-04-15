@@ -1,0 +1,9 @@
+body{
+    margin  : 0;
+}
+
+.canvas{
+    height : 1000;
+    width : 1000;
+    line-height: 50px;
+}
