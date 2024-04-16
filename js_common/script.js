@@ -153,8 +153,6 @@ function update() {
   requestAnimationFrame(update);
 }
 
-update();
-
 function is_inside_triangle(triangle, P) {
   let denominator = ((triangle.vertices[1].y - triangle.vertices[2].y) * (triangle.vertices[0].x - triangle.vertices[2].x) +
                  (triangle.vertices[2].x - triangle.vertices[1].x) * (triangle.vertices[0].y - triangle.vertices[2].y));
@@ -528,3 +526,5 @@ function recalculate_math(){
   output.innerText = out_string;
   MathJax.typesetPromise([output]).then(() => {});
 }
+
+update();
