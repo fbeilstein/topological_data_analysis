@@ -1,24 +1,22 @@
 let canvas = document.getElementById("canvas");
-let button = document.getElementById("button");
+let output = document.getElementById("output");
 let context = canvas.getContext("2d");
 
-canvas.width  = 600;
-canvas.height = 600;
-
+canvas.width  = 800;
+canvas.height = 800;
 
 class Alphabet{
   constructor(){
     let labels = 'ABCDFGHJKLMPRTUVWXYZabcdefghijklkmnopqrstuvwxyzαβγδϵζηθκλμνξπρστυϕχψωאבס'
-      this.alphabet = new Set();
-      for(let label of labels)
-      {
-        this.alphabet.add(label)
-      }
+    this.alphabet = new Set();
+    for(let label of labels){
+      this.alphabet.add(label)
+    }
   }
   get_label(){
-       let out = this.alphabet.values().next().value;
+      let out = this.alphabet.values().next().value;
       this.alphabet.delete(out)
-       return out
+      return out
   }
   return_label(label){
        this.alphabet.add(label)
@@ -32,6 +30,7 @@ class Vertice {
     this.x = x;
     this.y = y;
     this.label = label;
+    this.picked = false;
   }
 }
 
@@ -43,34 +42,31 @@ class Triangle {
 
 let triangles = [];
 
-
 function get_distance(a,b){
-  return Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
+  return (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y);
 }
 
-let proximity_radius = 20;
+const rr = 20*20;
 function get_closest_vertice(vertice){
   for(let i=0; i<triangles.length; ++i)
     for(let j=0; j<3; ++j)
-      if(get_distance(triangles[i].vertices[j], vertice)<proximity_radius) return [i,j];
+      if(get_distance(triangles[i].vertices[j], vertice)<rr) return [i,j];
   return -1
 }
 
-let new_triangle_scale = 50
+const new_triangle_scale = 30;
 function add_triangle(x,y){
-  let a = new Vertice(x,y+new_triangle_scale, label_dispenser.get_label())
-  let b = new Vertice(x-new_triangle_scale, y-new_triangle_scale, label_dispenser.get_label())
-  let c = new Vertice(x+new_triangle_scale, y-new_triangle_scale, label_dispenser.get_label())
-  triangles.push(new Triangle(a,b,c));
+  triangles.push(new Triangle(new Vertice(x,                    y+new_triangle_scale, label_dispenser.get_label()),
+                              new Vertice(x-new_triangle_scale, y-new_triangle_scale, label_dispenser.get_label()),
+                              new Vertice(x+new_triangle_scale, y-new_triangle_scale, label_dispenser.get_label())));
+  recalculate_math();
 }
-
 
 function pick_triangle(vertice){
   for(let i=0; i<triangles.length; ++i)
     if(is_inside_triangle(triangles[i], vertice)) return i;
   return -1
 }
-
 
 function delete_triangle(i)
 {
@@ -88,19 +84,18 @@ function delete_triangle(i)
       [triangles[i], triangles[triangles.length-1]] = [triangles[triangles.length-1], triangles[i]];
   }
   triangles.splice(-1);
+  recalculate_math();
 }
 
 
 function draw_triangles()
 {
     canvas.style.backgroundColor = "white";
-
     context.clearRect(0,0, canvas.width, canvas.height);
-    context.strokeStyle = "grey";
+    context.strokeStyle = "gray";
     context.fillStyle = 'lightgreen';
     context.lineWidth = 1;
     context.beginPath();
-
     for(let i=0; i<triangles.length; ++i){
       context.moveTo(triangles[i].vertices[0].x, triangles[i].vertices[0].y);
       for(let j=0; j<3; ++j){
@@ -118,26 +113,33 @@ function draw_triangles()
 
 function draw_vertices()
 {
-  context.fillStyle = 'lightcoral';
   for(let i=0; i<triangles.length; ++i){
     for(let j=0; j<3; ++j){
       context.beginPath();
+      if(!triangles[i].vertices[j].picked){
+        context.fillStyle = 'lightcoral';
+      }
+      else{
+        context.fillStyle = 'red';
+      }
       context.arc(triangles[i].vertices[j].x, triangles[i].vertices[j].y, 6, 0, 2*Math.PI);   
       context.fill();
+      context.closePath();
     }
   } 
-  context.fillStyle = 'red';
+      
 }
 
-
-
-function draw_labels()
-{ 
+function draw_labels(){ 
+  let labels = new Set();
+  context.fillStyle = 'black';
+  context.font = "20px courier";
   for(let i=0; i<triangles.length; ++i){
     for(let j=0; j<3; ++j){
-      context.fillStyle = 'black';
-      context.font = "20px bold courier";
-      context.fillText(triangles[i].vertices[j].label, triangles[i].vertices[j].x, triangles[i].vertices[j].y+20);
+      if(!labels.has(triangles[i].vertices[j])){
+        context.fillText(triangles[i].vertices[j].label, triangles[i].vertices[j].x, triangles[i].vertices[j].y+20);
+        labels.add(triangles[i].vertices[j]);
+      }
     } 
   }
 }
@@ -147,15 +149,11 @@ function is_inside_triangle(triangle, P) {
                  (triangle.vertices[2].x - triangle.vertices[1].x) * (triangle.vertices[0].y - triangle.vertices[2].y));
   let a = ((triangle.vertices[1].y - triangle.vertices[2].y) * (P.x - triangle.vertices[2].x) +
        (triangle.vertices[2].x - triangle.vertices[1].x) * (P.y - triangle.vertices[2].y)) / denominator;
-  
-  
-       let b = ((triangle.vertices[2].y - triangle.vertices[0].y) * (P.x - triangle.vertices[2].x) +
+  let b = ((triangle.vertices[2].y - triangle.vertices[0].y) * (P.x - triangle.vertices[2].x) +
        (triangle.vertices[0].x - triangle.vertices[2].x) * (P.y - triangle.vertices[2].y)) / denominator;
   let c = 1 - a - b;   
   return a >= 0 && b >= 0 && c >= 0;
 }
-
-
 
 function update()
 {
@@ -165,35 +163,54 @@ function update()
   draw_labels();
 }
 
-
 update();
 
 
-function update_text()
-{
-  context.fillStyle = 'lightgreen';
-  context.font = "16px courier";
-  context.fillText("スコア:"+ s.toString(), 15, 20);
-}
-
 let current_point = -1;
 let current_triangle = -1;
+let glue_condidate_1 = -1;
+
+
+document.addEventListener('keyup', function(event) {
+  if(glue_condidate_1!=-1)
+    triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].picked = false;
+    glue_condidate_1 = -1;
+});
 
 canvas.addEventListener('mousedown', function(event) {
   var x = event.x
   var y = event.y
   current_point = get_closest_vertice(new Vertice(x,y));
-  if(current_point==-1){
-    current_triangle = pick_triangle(new Vertice(x,y));
-    console.log("triag:", current_triangle);
+  if(event.ctrlKey)
+  {
+    if(current_point!=-1)
+    {
+      if (glue_condidate_1==-1) {
+          glue_condidate_1 = current_point;
+          triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].picked = true;
+      }
+      else
+      {
+        if(triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].label!=triangles[current_point[0]].vertices[current_point[1]].label) 
+        {
+          label_dispenser.return_label(triangles[current_point[0]].vertices[current_point[1]].label)
+          triangles[current_point[0]].vertices[current_point[1]].label = triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].label
+          triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].picked = false;
+        }
+        glue_condidate_1 = -1;
+      }
+    }
   }
+  else
+    if(current_point==-1){
+      current_triangle = pick_triangle(new Vertice(x,y));
+    }
 });
 
 canvas.addEventListener('mouseup', function(event) {
-  var x = event.x
-  var y = event.y
   current_point = -1;
   current_triangle = -1;
+  recalculate_math();
 });
 
 
@@ -214,11 +231,11 @@ canvas.addEventListener('mousemove', function(event) {
     {
         let picked_triangle = picked[0];
         let picked_triangle_vertice = picked[1];    
-        if(triangles[triangle].vertices[triangle_vertice].label!=triangles[picked_triangle].vertices[picked_triangle_vertice].label) 
+        if(triangle !=picked_triangle && triangles[triangle].vertices[triangle_vertice]!=triangles[picked_triangle].vertices[picked_triangle_vertice]) 
         {
-          console.log("returning           : ",triangles[picked_triangle].vertices[picked_triangle_vertice].label)
-          label_dispenser.return_label(triangles[picked_triangle].vertices[picked_triangle_vertice].label)
-          triangles[picked_triangle].vertices[picked_triangle_vertice] = triangles[triangle].vertices[triangle_vertice]; 
+          if(triangles[triangle].vertices[triangle_vertice].label!=triangles[picked_triangle].vertices[picked_triangle_vertice].label) 
+            label_dispenser.return_label(triangles[triangle].vertices[triangle_vertice].label)
+            triangles[triangle].vertices[triangle_vertice] = triangles[picked_triangle].vertices[picked_triangle_vertice]; 
         }
      }
    }
@@ -231,7 +248,8 @@ canvas.addEventListener('mousemove', function(event) {
       triangles[current_triangle].vertices[i].y += dy; 
     }    
   }
-});
+}, {passive: true, capture: true});
+
 canvas.addEventListener('dblclick', function(event) {
   let x = event.x;
   let y = event.y;
@@ -244,84 +262,43 @@ canvas.addEventListener('dblclick', function(event) {
   }
 });
 
-async function calculate(triangles) {
-  const result = await google.colab.kernel.invokeFunction('notebook.homologies', [triangles], {});
-  params = result.data['application/json'];
-}
 
-
-button.addEventListener('click', function(event) {
-  out_triangles = []
-  for(let i=0; i<triangles.length; ++i)
-    out_triangles.push(triangles[i].vertices[0].label+triangles[i].vertices[1].label+triangles[i].vertices[2].label)
-  calculate(out_triangles);
-});
-
-///////////////////////////////////////
-
-function my_print(message){
-  console.log(message)
-}
+/////////////////////////////////////// math 
 
 function set_triangles(tt){
    let triangles = []
-   for (let t of tt){
-      my_print(t.split("").sort().join(""))
+   for (let t of tt)
       triangles.push(t.split("").sort().join(""))
-   }
-   my_print('triangles : ' + triangles.toString())
    return triangles
 }
 
 
 function get_complex(tt){
-   let parts = new Set()
+   let parts = new Set();
    for (let t of tt)
        [t, t[0], t[1], t[2], [t[0],t[1]].sort().join(""),[t[1],t[2]].sort().join(""), [t[0],t[2]].sort().join("")].forEach(x=>parts.add(x))
    let complex_ = [...parts].sort()
-   my_print('complexes : ' + complex_.toString())
    return complex_
 }
 
 function get_chain_order(complex, order){
-   let chain = complex.filter((c) => c.length == order+1);
-   my_print('{order}-chain : ' + chain.toString());
-   return chain;
+   return complex.filter((c) => c.length == order+1);
 }
    
 function get_span(tt){
    let string = "";
    for (i in tt)
        string  += (tt[i][0]=="-" ? "-" : "+") + 'x'+(i).toString()+'*'+(tt[i]).toString();
-   my_print("span    :"+string);
    return tt;
 }
 
 
-function calculate_boundary(tt, space="ker"){
-   let n = tt.length;
-   let matrix = {};
-   for(let i=0; i<n; ++i)
-       for(let j=0; j<tt[i].length; ++j){
-           let x = tt[i].slice(0,j).concat(tt[i].slice(j+1));
-           if (x=='') continue;
-           if(matrix[x]==undefined)
-               matrix[x] = (Array(n)).fill(0);
-           matrix[x][i] += (j%2==0 ? 1 : -1);
-       }
-
-   let m = [];
-   for(let key in matrix)
-       m.push(matrix[key]);
-    return m;
-}
-///////////////////////////////////////
 function z_div(a, b) {
-  var remainder = a % b;
-  var aIsInfinite = a === -Infinity || a === Infinity;
-  var bIsInfinite = b === -Infinity || b === Infinity;
-  var aIsNeg = a + 1 / a < 0;
-  var bIsNeg = b + 1 / b < 0;
+  let remainder = a % b;
+  let aIsInfinite = a === -Infinity || a === Infinity;
+  let bIsInfinite = b === -Infinity || b === Infinity;
+  let aIsNeg = a + 1 / a < 0;
+  let bIsNeg = b + 1 / b < 0;
   return [
     (aIsInfinite !== bIsInfinite && a) ? aIsInfinite ? NaN : aIsNeg === bIsNeg ? 0 : -1 : Math.floor(a / b),
     (!a && b < 0) ? -0 : remainder + (remainder !== 0 && aIsNeg !== bIsNeg ? b : 0)
@@ -351,7 +328,6 @@ function z_gcdex(a, b){
     y_sign = 1
   }
 
-
   let c = undefined;
   let q = undefined;
   let x = 1;
@@ -365,8 +341,6 @@ function z_gcdex(a, b){
   return [x * x_sign, y * y_sign, a];
 }
 
-
-
 function add_columns(m, i, j, a, b, c, d){
   for(let k=0; k<m.length; ++k){
       let e = m[k][i];
@@ -374,7 +348,6 @@ function add_columns(m, i, j, a, b, c, d){
       m[k][j] = c*e + d*m[k][j];
   }
 }
-
 
 function add_rows(m, i, j, a, b, c, d){
   for (let k=0; k<m[0].length; ++k) {
@@ -504,16 +477,59 @@ function invariant_factors(m){
   return result;
 }
 
+function calculate_boundary(tt){
+  let n = tt.length;
+  let matrix = {};
+  for(let i=0; i<n; ++i)
+      for(let j=0; j<tt[i].length; ++j){
+          let x = tt[i].slice(0,j).concat(tt[i].slice(j+1));
+          if (x=='') continue;
+          if(matrix[x]==undefined)
+              matrix[x] = (Array(n)).fill(0);
+          matrix[x][i] += (j%2==0 ? 1 : -1);
+      }
 
-T_klein = set_triangles(["ABC", "ABF", "BDF", "BGC", "DFC", "DGC", "CFE", "FHE",
-                   "AFH", "ADH", "AGD", "AEG", "ACE", "HDB", "HBE", "BEG"]); 
+  let m = [];
+  for(let key in matrix)
+      m.push(matrix[key]);
+  let m_dim = m.length;
+  let smith = invariant_factors(m);
+  let rank  = 0;
+  for(let f of smith) rank+=f!=0;
+  return {"dim" : m_dim, "rank" : rank, "smith invs" : smith};
+}
 
+function recalculate_math(){
+  let out_triangles = [];
+  for(let i=0; i<triangles.length; ++i)
+    out_triangles.push(triangles[i].vertices[0].label+triangles[i].vertices[1].label+triangles[i].vertices[2].label);
+  out_string = "\n\n\n\n";
+  let tt = set_triangles(out_triangles);
+  out_string += "triangles  : "+tt.toString()+"";
+    
+  let complex_ = get_complex(tt);
+  out_string += "\n complex  : "+complex_.toString();
+  let ch0 = get_chain_order(complex_, 0);
+  out_string += "\n\n 0-chain   : "+ch0.toString();
+  let ch1 = get_chain_order(complex_, 1);
+  out_string += "\n 1-chain   : "+ch1.toString();
+  let ch2 = get_chain_order(complex_, 2);
+  out_string += "\n 2-chain  : "+ch2.toString();
 
-K = get_complex(T_klein);
+  let b0 = calculate_boundary(ch0);
+  out_string += "\n\n 0-boundary : "+JSON.stringify(b0);
+  let b1 = calculate_boundary(ch1);
+  out_string += "\n 1-boundary : "+JSON.stringify(b1);
+  let b2 = calculate_boundary(ch2);
+  out_string += "\n 2-boundary : "+JSON.stringify(b2);
+    
+  let conn_components = b1.dim - b1.rank - b0.rank;
+  out_string += "\n\nconnected components: " + conn_components.toString();
+  let holes = b2.dim - b2.rank - b1.rank;
+  out_string += "\nholes : " + holes.toString();
 
+  let voids = out_triangles.length - b2.rank;
+  out_string += "\n voids :  " + voids.toString();
 
-
-C1 = get_chain_order(K, 2);
-x = calculate_boundary(get_span(C1), "∂C1");
-console.log(x)
-console.log(invariant_factors(x))
+  output.innerText = out_string;
+}
