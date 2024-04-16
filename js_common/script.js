@@ -41,78 +41,75 @@ class Triangle {
 }
 
 let triangles = [];
+let current_point    = -1;
+let current_triangle = -1;
+let glue_condidate_1 = -1;
 
-function get_distance(a,b){
+function get_distance(a,b) {
   return (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y);
 }
 
-const rr = 20*20;
-function get_closest_vertice(x,y){
+const RR = 15*15;
+function get_closest_vertice(x,y) {
   for(let i=0; i<triangles.length; ++i)
-    for(let j=0; j<3; ++j)
-  {
-    let temp = (triangles[i].vertices[j].x-x)*(triangles[i].vertices[j].x-x)+(triangles[i].vertices[j].y-y)*(triangles[i].vertices[j].y-y);
-    if(temp<rr) return [i,j];
+    for(let j=0; j<3; ++j) {
+    let rr = (triangles[i].vertices[j].x-x)*(triangles[i].vertices[j].x-x)+(triangles[i].vertices[j].y-y)*(triangles[i].vertices[j].y-y);
+    if(rr<RR) return [i,j];
   }
   return -1;
 }
 
-function get_closest_vertice_except_self(x,y){
+function get_closest_vertice_except_self(x,y) {
   for(let i=0; i<triangles.length; ++i)
-    for(let j=0; j<3; ++j)
-  {
-    let temp = (triangles[i].vertices[j].x-x)*(triangles[i].vertices[j].x-x)+(triangles[i].vertices[j].y-y)*(triangles[i].vertices[j].y-y);
-    if(temp<rr && temp>1) return [i,j];
+    for(let j=0; j<3; ++j) {
+    let rr = (triangles[i].vertices[j].x-x)*(triangles[i].vertices[j].x-x)+(triangles[i].vertices[j].y-y)*(triangles[i].vertices[j].y-y);
+    if(rr<RR && rr>1) return [i,j];
   }
   return -1;
 }
-
 
 const new_triangle_scale = 30;
-function add_triangle(x,y){
+function add_triangle(x,y) {
   triangles.push(new Triangle(new Vertice(x,                    y+new_triangle_scale, label_dispenser.get_label()),
                               new Vertice(x-new_triangle_scale, y-new_triangle_scale, label_dispenser.get_label()),
                               new Vertice(x+new_triangle_scale, y-new_triangle_scale, label_dispenser.get_label())));
   recalculate_math();
 }
 
-function pick_triangle(vertice){
+function pick_triangle(vertice) {
   for(let i=0; i<triangles.length; ++i)
     if(is_inside_triangle(triangles[i], vertice)) return i;
   return -1
 }
 
-function delete_triangle(i)
-{
-  for(let x=0; x<3; ++x){
+function delete_triangle(i) {
+  for(let x=0; x<3; ++x) {
     let n = 0;
-    for(let y=0; y<triangles.length; ++y){
-      for(let z=0; z<3; ++z){
+    for(let y=0; y<triangles.length; ++y) {
+      for(let z=0; z<3; ++z) {
         n += (triangles[y].vertices[z].label == triangles[i].vertices[x].label);
       }
     }
     if(n==1) label_dispenser.return_label(triangles[i].vertices[x].label)
   }
   
-  if(i+1!=triangles.length){
+  if(i+1!=triangles.length) {
       [triangles[i], triangles[triangles.length-1]] = [triangles[triangles.length-1], triangles[i]];
   }
   triangles.splice(-1);
   recalculate_math();
 }
 
-
-function draw_triangles()
-{
+function draw_triangles() {
     canvas.style.backgroundColor = "white";
     context.clearRect(0,0, canvas.width, canvas.height);
     context.strokeStyle = "gray";
     context.fillStyle = 'lightgreen';
     context.lineWidth = 1;
     context.beginPath();
-    for(let i=0; i<triangles.length; ++i){
+    for(let i=0; i<triangles.length; ++i) {
       context.moveTo(triangles[i].vertices[0].x, triangles[i].vertices[0].y);
-      for(let j=0; j<3; ++j){
+      for(let j=0; j<3; ++j) {
         context.lineTo(triangles[i].vertices[j].x, triangles[i].vertices[j].y);
         context.fill();
       }
@@ -123,35 +120,40 @@ function draw_triangles()
     context.closePath();
 }
 
-
-
-function draw_vertices()
-{
-  for(let i=0; i<triangles.length; ++i){
-    for(let j=0; j<3; ++j){
+function draw_vertices() {
+  for(let i=0; i<triangles.length; ++i) {
+    for(let j=0; j<3; ++j) {
       context.beginPath();
       context.fillStyle = triangles[i].vertices[j].picked ? 'red' : 'lightcoral';
-      context.arc(triangles[i].vertices[j].x, triangles[i].vertices[j].y, 6, 0, 2*Math.PI);   
+      context.arc(triangles[i].vertices[j].x, triangles[i].vertices[j].y, 5, 0, 2*Math.PI);   
       context.fill();
       context.closePath();
     }
   } 
-      
 }
 
-function draw_labels(){ 
+function draw_labels() { 
   let labels = new Set();
   context.fillStyle = 'black';
   context.font = "20px courier";
-  for(let i=0; i<triangles.length; ++i){
-    for(let j=0; j<3; ++j){
-      if(!labels.has(triangles[i].vertices[j])){
+  for(let i=0; i<triangles.length; ++i) {
+    for(let j=0; j<3; ++j) {
+      if(!labels.has(triangles[i].vertices[j])) {
         context.fillText(triangles[i].vertices[j].label, triangles[i].vertices[j].x, triangles[i].vertices[j].y+20);
         labels.add(triangles[i].vertices[j]);
       }
     } 
   }
 }
+
+function update() {
+  draw_triangles();
+  draw_vertices();
+  draw_labels();
+  requestAnimationFrame(update);
+}
+
+update();
 
 function is_inside_triangle(triangle, P) {
   let denominator = ((triangle.vertices[1].y - triangle.vertices[2].y) * (triangle.vertices[0].x - triangle.vertices[2].x) +
@@ -164,21 +166,6 @@ function is_inside_triangle(triangle, P) {
   return a >= 0 && b >= 0 && c >= 0;
 }
 
-function update()
-{
-  draw_triangles();
-  draw_vertices();
-  draw_labels();
-  requestAnimationFrame(update);
-}
-
-update();
-
-
-let current_point    = -1;
-let current_triangle = -1;
-let glue_condidate_1 = -1;
-
 document.addEventListener('keyup', function(event) {
   if(glue_condidate_1!=-1)
     triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].picked = false;
@@ -189,10 +176,8 @@ canvas.addEventListener('mousedown', function(event) {
   let x = event.offsetX;
   let y = event.offsetY;
   current_point = get_closest_vertice(x,y);
-  if(event.ctrlKey)
-  {
-    if(current_point!=-1)
-    {
+  if(event.ctrlKey) {
+    if(current_point!=-1) {
       if (glue_condidate_1==-1) {
           glue_condidate_1 = current_point;
           triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].picked = true;
@@ -220,7 +205,6 @@ canvas.addEventListener('mouseup', function(event) {
   current_triangle = -1;
   recalculate_math();
 });
-
 
 canvas.addEventListener('mousemove', function(event) {
   if(current_point!=-1){
@@ -263,7 +247,6 @@ canvas.addEventListener('dblclick', function(event) {
   }
 });
 
-
 /////////////////////////////////////// math 
 
 function set_triangles(tt){
@@ -272,7 +255,6 @@ function set_triangles(tt){
       triangles.push(t.split("").sort().join(""))
    return triangles
 }
-
 
 function get_complex(tt){
    let parts = new Set();
@@ -286,14 +268,6 @@ function get_chain_order(complex, order){
    return complex.filter((c) => c.length == order+1);
 }
    
-function get_span(tt){
-   let string = "";
-   for (i in tt)
-       string  += (tt[i][0]=="-" ? "-" : "+") + 'x'+(i).toString()+'*'+(tt[i]).toString();
-   return tt;
-}
-
-
 function z_div(a, b) {
   let remainder = a % b;
   let aIsInfinite = a === -Infinity || a === Infinity;
@@ -503,7 +477,6 @@ function calculate_boundary(tt){
       if(Math.abs(f)!=1) torsion.push(f);
     } 
   }
-  
   return {"dim" : m_dim, "rank" : rank, "smith invs" : smith, "torsion" : torsion};
 }
 
