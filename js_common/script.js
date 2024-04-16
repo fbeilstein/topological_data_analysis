@@ -14,16 +14,18 @@ class Alphabet{
     }
   }
   get_label(){
-      let out = this.alphabet.values().next().value;
-      this.alphabet.delete(out)
-      return out
+    let label = this.alphabet.values().next().value;
+    this.alphabet.delete(label);
+    console.log("symbol " + label +" allocated from pool");
+    return label;
   }
   return_label(label){
-       this.alphabet.add(label)
+    this.alphabet.add(label);
+    console.log("symbol " + label +" returned to pool");
    }
 }
 
-let label_dispenser = new Alphabet();
+let label_allocator = new Alphabet();
 
 class Vertice {
   constructor(x, y, label) {
@@ -68,11 +70,38 @@ function get_closest_vertice_except_self(x,y) {
   return -1;
 }
 
+function return_label_if_poss_1(label) {
+  let set = new Set();
+  for(let i=0; i<triangles.length; ++i) {
+      for(let j=0; j<3; ++j) {
+        if (triangles[i].vertices[j].label == label) {
+          set.add(triangles[i].vertices[j]);
+        }
+      }
+    }
+    if(set.size==1) 
+      label_allocator.return_label(label);
+}
+
+function return_label_if_poss_2(label) {
+  let set = new Set();
+  for(let i=0; i<triangles.length; ++i) {
+      for(let j=0; j<3; ++j) {
+        if (triangles[i].vertices[j].label == label) {
+          set.add(triangles[i]);
+        }
+      }
+    }
+    if(set.size==1) 
+      label_allocator.return_label(label);
+}
+
+
 const new_triangle_scale = 30;
 function add_triangle(x,y) {
-  triangles.push(new Triangle(new Vertice(x,                    y+new_triangle_scale, label_dispenser.get_label()),
-                              new Vertice(x-new_triangle_scale, y-new_triangle_scale, label_dispenser.get_label()),
-                              new Vertice(x+new_triangle_scale, y-new_triangle_scale, label_dispenser.get_label())));
+  triangles.push(new Triangle(new Vertice(x,                    y+new_triangle_scale, label_allocator.get_label()),
+                              new Vertice(x-new_triangle_scale, y-new_triangle_scale, label_allocator.get_label()),
+                              new Vertice(x+new_triangle_scale, y-new_triangle_scale, label_allocator.get_label())));
   recalculate_math();
 }
 
@@ -83,19 +112,10 @@ function pick_triangle(vertice) {
 }
 
 function delete_triangle(i) {
-  for(let x=0; x<3; ++x) {
-    let n = 0;
-    for(let y=0; y<triangles.length; ++y) {
-      for(let z=0; z<3; ++z) {
-        n += (triangles[y].vertices[z].label == triangles[i].vertices[x].label);
-      }
-    }
-    if(n==1) label_dispenser.return_label(triangles[i].vertices[x].label)
-  }
-  
-  if(i+1!=triangles.length) {
+  for(let j=0; j<3; ++j) 
+    return_label_if_poss_2(triangles[i].vertices[j].label);
+  if(i+1!=triangles.length) 
       [triangles[i], triangles[triangles.length-1]] = [triangles[triangles.length-1], triangles[i]];
-  }
   triangles.splice(-1);
   recalculate_math();
 }
@@ -174,6 +194,13 @@ canvas.addEventListener('mousedown', function(event) {
   let x = event.offsetX;
   let y = event.offsetY;
   current_point = get_closest_vertice(x,y);
+  if(event.altKey) {
+    if(current_point!=-1) {
+      return_label_if_poss_1(triangles[current_point[0]].vertices[current_point[1]].label);
+      triangles[current_point[0]].vertices[current_point[1]].label = label_allocator.get_label();
+      return;
+    }
+  }
   if(event.ctrlKey) {
     if(current_point!=-1) {
       if (glue_condidate_1==-1) {
@@ -184,7 +211,7 @@ canvas.addEventListener('mousedown', function(event) {
       {
         if(triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].label!=triangles[current_point[0]].vertices[current_point[1]].label) 
         {
-          label_dispenser.return_label(triangles[current_point[0]].vertices[current_point[1]].label)
+          return_label_if_poss_1(triangles[current_point[0]].vertices[current_point[1]].label)
           triangles[current_point[0]].vertices[current_point[1]].label = triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].label
           triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].picked = false;
         }
@@ -218,7 +245,7 @@ canvas.addEventListener('mousemove', function(event) {
         let closest_triangle_vertice = closest[1];    
         if(triangle !=closest_triangle && triangles[triangle].vertices[triangle_vertice]!=triangles[closest_triangle].vertices[closest_triangle_vertice]) {
           if(triangles[triangle].vertices[triangle_vertice].label!=triangles[closest_triangle].vertices[closest_triangle_vertice].label) 
-            label_dispenser.return_label(triangles[triangle].vertices[triangle_vertice].label)
+            return_label_if_poss_1(triangles[triangle].vertices[triangle_vertice].label)
             triangles[triangle].vertices[triangle_vertice] = triangles[closest_triangle].vertices[closest_triangle_vertice]; 
         }
     }
