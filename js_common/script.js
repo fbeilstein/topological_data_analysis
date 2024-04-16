@@ -2,8 +2,8 @@ let canvas = document.getElementById("canvas");
 let output = document.getElementById("output");
 let context = canvas.getContext("2d");
 
-canvas.width  = 800;
-canvas.height = 800;
+canvas.width  = 700;
+canvas.height = 700;
 
 class Alphabet{
   constructor(){
@@ -50,9 +50,23 @@ const rr = 20*20;
 function get_closest_vertice(x,y){
   for(let i=0; i<triangles.length; ++i)
     for(let j=0; j<3; ++j)
-      if((triangles[i].vertices[j].x-x)*(triangles[i].vertices[j].x-x)+(triangles[i].vertices[j].y-y)*(triangles[i].vertices[j].y-y)<rr) return [i,j];
+  {
+    let temp = (triangles[i].vertices[j].x-x)*(triangles[i].vertices[j].x-x)+(triangles[i].vertices[j].y-y)*(triangles[i].vertices[j].y-y);
+    if(temp<rr) return [i,j];
+  }
   return -1;
 }
+
+function get_closest_vertice_except_self(x,y){
+  for(let i=0; i<triangles.length; ++i)
+    for(let j=0; j<3; ++j)
+  {
+    let temp = (triangles[i].vertices[j].x-x)*(triangles[i].vertices[j].x-x)+(triangles[i].vertices[j].y-y)*(triangles[i].vertices[j].y-y);
+    if(temp<rr && temp>1) return [i,j];
+  }
+  return -1;
+}
+
 
 const new_triangle_scale = 30;
 function add_triangle(x,y){
@@ -172,8 +186,8 @@ document.addEventListener('keyup', function(event) {
 });
 
 canvas.addEventListener('mousedown', function(event) {
-  var x = event.x
-  var y = event.y
+  let x = event.offsetX;
+  let y = event.offsetY;
   current_point = get_closest_vertice(x,y);
   if(event.ctrlKey)
   {
@@ -202,39 +216,32 @@ canvas.addEventListener('mousedown', function(event) {
 });
 
 canvas.addEventListener('mouseup', function(event) {
-  current_point = -1;
+  current_point    = -1;
   current_triangle = -1;
   recalculate_math();
 });
 
 
 canvas.addEventListener('mousemove', function(event) {
-  if(current_point!=-1)
-  {
-    let x = event.x;
-    let y = event.y;
+  if(current_point!=-1){
+    let x = event.offsetX;
+    let y = event.offsetY;
     let triangle = current_point[0]
     let triangle_vertice = current_point[1]
-    let closest = get_closest_vertice(x,y);
-    if(closest==-1)
-    {
-      triangles[triangle].vertices[triangle_vertice].x = x; 
-      triangles[triangle].vertices[triangle_vertice].y = y; 
-    }
-    else
-    {
+    let closest = get_closest_vertice_except_self(x,y);
+    triangles[triangle].vertices[triangle_vertice].x = x; 
+    triangles[triangle].vertices[triangle_vertice].y = y; 
+    if(closest!=-1){
         let closest_triangle = closest[0];
         let closest_triangle_vertice = closest[1];    
-        if(triangle !=closest_triangle && triangles[triangle].vertices[triangle_vertice]!=triangles[closest_triangle].vertices[closest_triangle_vertice]) 
-        {
+        if(triangle !=closest_triangle && triangles[triangle].vertices[triangle_vertice]!=triangles[closest_triangle].vertices[closest_triangle_vertice]) {
           if(triangles[triangle].vertices[triangle_vertice].label!=triangles[closest_triangle].vertices[closest_triangle_vertice].label) 
             label_dispenser.return_label(triangles[triangle].vertices[triangle_vertice].label)
             triangles[triangle].vertices[triangle_vertice] = triangles[closest_triangle].vertices[closest_triangle_vertice]; 
         }
-     }
-   }
-   else if(current_triangle!=-1)
-  {
+    }
+  }
+  else if(current_triangle!=-1){
     var dx = event.movementX;
     var dy = event.movementY;
     for(let i=0; i<3; ++i){
@@ -242,11 +249,11 @@ canvas.addEventListener('mousemove', function(event) {
       triangles[current_triangle].vertices[i].y += dy; 
     }    
   }
-}, {passive: true, capture: true});
+});
 
 canvas.addEventListener('dblclick', function(event) {
-  let x = event.x;
-  let y = event.y;
+  let x = event.offsetX;
+  let y = event.offsetY;
   let picked = pick_triangle(new Vertice(x,y));
   if(picked!=-1){
     delete_triangle(picked);
@@ -489,26 +496,33 @@ function calculate_boundary(tt){
   let m_dim = m.length;
   let smith = invariant_factors(m);
   let rank  = 0;
-  for (let f of smith) rank+=f!=0;
-  return {"dim" : m_dim, "rank" : rank, "smith invs" : smith};
+  let torsion = [];
+  for (let f of smith) {
+    if(f!=0){
+      rank++;
+      if(Math.abs(f)!=1) torsion.push(f);
+    } 
+  }
+  
+  return {"dim" : m_dim, "rank" : rank, "smith invs" : smith, "torsion" : torsion};
 }
 
 function recalculate_math(){
   let out_triangles = [];
   for(let i=0; i<triangles.length; ++i)
     out_triangles.push(triangles[i].vertices[0].label+triangles[i].vertices[1].label+triangles[i].vertices[2].label);
-  out_string = "\n\n\n\n";
+  out_string = "";
   let tt = set_triangles(out_triangles);
-  out_string += "triangles  : "+tt.toString()+"";
+  out_string += "triangles  : \\("+tt.toString()+"\\)";
     
   let complex_ = get_complex(tt);
-  out_string += "\n complex  : "+complex_.toString();
+  out_string += "\n complex  : \\("+complex_.toString()+"\\)";
   let ch0 = get_chain_order(complex_, 0);
-  out_string += "\n\n 0-chain   : "+ch0.toString();
+  out_string += "\n\n 0-chain   : \\("+ch0.toString()+"\\)";
   let ch1 = get_chain_order(complex_, 1);
-  out_string += "\n 1-chain   : "+ch1.toString();
+  out_string += "\n 1-chain   : \\("+ch1.toString()+"\\)";
   let ch2 = get_chain_order(complex_, 2);
-  out_string += "\n 2-chain  : "+ch2.toString();
+  out_string += "\n 2-chain  : \\("+ch2.toString()+"\\)";
 
   let b0 = calculate_boundary(ch0);
   out_string += "\n\n 0-boundary : "+JSON.stringify(b0);
@@ -518,12 +532,26 @@ function recalculate_math(){
   out_string += "\n 2-boundary : "+JSON.stringify(b2);
     
   let conn_components = b1.dim - b1.rank - b0.rank;
-  out_string += "\n\nconnected components: " + conn_components.toString();
+  out_string += "\n\nconnected components: \\(" + conn_components.toString()+"\\)";
   let holes = b2.dim - b2.rank - b1.rank;
-  out_string += "\nholes : " + holes.toString();
+  out_string += "\nholes : \\(" + holes.toString()+"\\)";
 
   let voids = out_triangles.length - b2.rank;
-  out_string += "\n voids :  " + voids.toString();
+  out_string += "\n voids :  \\(" + voids.toString()+"\\)";
+
+
+  out_string += "\n\n \\( H_0(K) \\cong \\mathbb{Z}^{" + conn_components.toString() + "}\\)"; // ??
+
+  out_string += "\n \\( H_1(K) \\cong \\mathbb{Z}^{" + holes.toString() + "}"; 
+  for (let t of b2.torsion)
+    out_string += "\\oplus \\mathbb{Z}_{" + t.toString() + "}";
+  out_string += "\\)";  
+
+  out_string += "\n \\( H_2(K) \\cong \\mathbb{Z}^{" + voids.toString() + "}\\)"; // ??
 
   output.innerText = out_string;
+
+  MathJax.typesetClear([output]);
+  output.innerText = out_string;
+  MathJax.typesetPromise([output]).then(() => {});
 }
