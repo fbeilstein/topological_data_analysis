@@ -47,11 +47,11 @@ function get_distance(a,b){
 }
 
 const rr = 20*20;
-function get_closest_vertice(vertice){
+function get_closest_vertice(x,y){
   for(let i=0; i<triangles.length; ++i)
     for(let j=0; j<3; ++j)
-      if(get_distance(triangles[i].vertices[j], vertice)<rr) return [i,j];
-  return -1
+      if((triangles[i].vertices[j].x-x)*(triangles[i].vertices[j].x-x)+(triangles[i].vertices[j].y-y)*(triangles[i].vertices[j].y-y)<rr) return [i,j];
+  return -1;
 }
 
 const new_triangle_scale = 30;
@@ -116,12 +116,7 @@ function draw_vertices()
   for(let i=0; i<triangles.length; ++i){
     for(let j=0; j<3; ++j){
       context.beginPath();
-      if(!triangles[i].vertices[j].picked){
-        context.fillStyle = 'lightcoral';
-      }
-      else{
-        context.fillStyle = 'red';
-      }
+      context.fillStyle = triangles[i].vertices[j].picked ? 'red' : 'lightcoral';
       context.arc(triangles[i].vertices[j].x, triangles[i].vertices[j].y, 6, 0, 2*Math.PI);   
       context.fill();
       context.closePath();
@@ -157,30 +152,29 @@ function is_inside_triangle(triangle, P) {
 
 function update()
 {
-  requestAnimationFrame(update);
   draw_triangles();
   draw_vertices();
   draw_labels();
+  requestAnimationFrame(update);
 }
 
 update();
 
 
-let current_point = -1;
+let current_point    = -1;
 let current_triangle = -1;
 let glue_condidate_1 = -1;
-
 
 document.addEventListener('keyup', function(event) {
   if(glue_condidate_1!=-1)
     triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].picked = false;
-    glue_condidate_1 = -1;
+  glue_condidate_1 = -1;
 });
 
 canvas.addEventListener('mousedown', function(event) {
   var x = event.x
   var y = event.y
-  current_point = get_closest_vertice(new Vertice(x,y));
+  current_point = get_closest_vertice(x,y);
   if(event.ctrlKey)
   {
     if(current_point!=-1)
@@ -217,25 +211,25 @@ canvas.addEventListener('mouseup', function(event) {
 canvas.addEventListener('mousemove', function(event) {
   if(current_point!=-1)
   {
-    var x = event.x
-    var y = event.y
+    let x = event.x;
+    let y = event.y;
     let triangle = current_point[0]
     let triangle_vertice = current_point[1]
-    let picked = get_closest_vertice(new Vertice(x,y));
-    if(picked==-1)
+    let closest = get_closest_vertice(x,y);
+    if(closest==-1)
     {
       triangles[triangle].vertices[triangle_vertice].x = x; 
       triangles[triangle].vertices[triangle_vertice].y = y; 
     }
     else
     {
-        let picked_triangle = picked[0];
-        let picked_triangle_vertice = picked[1];    
-        if(triangle !=picked_triangle && triangles[triangle].vertices[triangle_vertice]!=triangles[picked_triangle].vertices[picked_triangle_vertice]) 
+        let closest_triangle = closest[0];
+        let closest_triangle_vertice = closest[1];    
+        if(triangle !=closest_triangle && triangles[triangle].vertices[triangle_vertice]!=triangles[closest_triangle].vertices[closest_triangle_vertice]) 
         {
-          if(triangles[triangle].vertices[triangle_vertice].label!=triangles[picked_triangle].vertices[picked_triangle_vertice].label) 
+          if(triangles[triangle].vertices[triangle_vertice].label!=triangles[closest_triangle].vertices[closest_triangle_vertice].label) 
             label_dispenser.return_label(triangles[triangle].vertices[triangle_vertice].label)
-            triangles[triangle].vertices[triangle_vertice] = triangles[picked_triangle].vertices[picked_triangle_vertice]; 
+            triangles[triangle].vertices[triangle_vertice] = triangles[closest_triangle].vertices[closest_triangle_vertice]; 
         }
      }
    }
@@ -490,12 +484,12 @@ function calculate_boundary(tt){
       }
 
   let m = [];
-  for(let key in matrix)
+  for (let key in matrix)
       m.push(matrix[key]);
   let m_dim = m.length;
   let smith = invariant_factors(m);
   let rank  = 0;
-  for(let f of smith) rank+=f!=0;
+  for (let f of smith) rank+=f!=0;
   return {"dim" : m_dim, "rank" : rank, "smith invs" : smith};
 }
 
