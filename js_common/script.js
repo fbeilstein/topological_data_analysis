@@ -60,11 +60,12 @@ function get_closest_vertice(v) {
   return -1;
 }
 
+const RR_1 = 12*12;
 function get_closest_vertice_except_self(v) {
   for(let i=0; i<triangles.length; ++i)
     for(let j=0; j<3; ++j) {
       if(triangles[i].vertices[j]!==v){
-          if(get_distance(triangles[i].vertices[j], v)<RR) return [i,j];
+          if(get_distance(triangles[i].vertices[j], v)<RR_1) return [i,j];
       }
   }
   return -1;
