@@ -5,23 +5,24 @@ let context = canvas.getContext("2d");
 canvas.width  = 600;
 canvas.height = 600;
 
-class Alphabet{
-  constructor(){
+class Alphabet {
+  constructor() {
     let labels = 'ABCDFGHJKLMPRTUVWXYZabcdefghijklkmnopqrstuvwxyzαβγδϵζηθκλμνξπρστυϕχψωאבס'
     this.alphabet = new Set();
     for(let label of labels){
       this.alphabet.add(label)
     }
   }
-  get_label(){
+  get_label() {
     let label = this.alphabet.values().next().value;
     this.alphabet.delete(label);
-    console.log("symbol " + label +" allocated from pool");
+    console.log("symbol " + label +" allocated");
     return label;
   }
-  return_label(label){
+
+  return_label(label) {
     this.alphabet.add(label);
-    console.log("symbol " + label +" returned to pool");
+    console.log("symbol " + label +" returned");
    }
 }
 
@@ -64,22 +65,20 @@ const RR_1 = 15*15;
 function get_closest_vertice_except_self(v) {
   for(let i=0; i<triangles.length; ++i)
     for(let j=0; j<3; ++j) {
-      if(triangles[i].vertices[j]!==v){
+      if(triangles[i].vertices[j]!==v) 
           if(get_distance(triangles[i].vertices[j], v)<RR_1) return [i,j];
-      }
-  }
-  return -1;
+    }
+    return -1;
 }
 
 function return_label_if_poss(label) {
   for(let i=0; i<triangles.length; ++i) {
-      for(let j=0; j<3; ++j) {
-        if (triangles[i].vertices[j].label == label) {
-          return;
-        }
-      }
+    for(let j=0; j<3; ++j) {
+      if (triangles[i].vertices[j].label == label) 
+        return;
     }
-    label_allocator.return_label(label);
+   }
+  label_allocator.return_label(label);
 }
 
 const new_triangle_scale = 30;
@@ -102,9 +101,9 @@ function pick_triangle(vertice) {
 }
 
 function delete_triangle(i) {
-  let label1  = triangles[i].vertices[0].label;
-  let label2  = triangles[i].vertices[1].label;
-  let label3  = triangles[i].vertices[2].label;
+  let label1 = triangles[i].vertices[0].label;
+  let label2 = triangles[i].vertices[1].label;
+  let label3 = triangles[i].vertices[2].label;
   if(i+1!=triangles.length) 
       [triangles[i], triangles[triangles.length-1]] = [triangles[triangles.length-1], triangles[i]];
   triangles.splice(-1);
@@ -163,7 +162,7 @@ function draw_vertices() {
 function draw_labels() { 
   let labels = new Set();
   context.fillStyle = 'black';
-  context.font = "20px courier";
+  context.font = "15px Verdana  ";
   for(let i=0; i<triangles.length; ++i) {
     for(let j=0; j<3; ++j) {
       if(!labels.has(triangles[i].vertices[j])) {
@@ -181,28 +180,28 @@ function update() {
   requestAnimationFrame(update);
 }
 
-function can_glue(x,y){
+function can_glue(x,y) {
   for(let i=0; i<triangles.length; ++i)
   {
     let has_y = 0;
     let has_x_label = 0;
     for(let j=0; j<3; ++j){
       has_y += (triangles[i].vertices[j]===triangles[y[0]].vertices[y[1]]);
-      has_x_label += (triangles[i].vertices[j].label===triangles[x[0]].vertices[x[1]].label);
+      has_x_label += (triangles[i].vertices[j].label==triangles[x[0]].vertices[x[1]].label);
     
     }
-    if(has_y && has_x_label) false;
+    if(has_y && has_x_label) return false;
   }
   return true;
 
 }
+
 function glue(x, y) { // y gets label from x
   triangles[y[0]].vertices[y[1]].label = triangles[x[0]].vertices[x[1]].label
   return_label_if_poss(triangles[y[0]].vertices[y[1]].label);
 }
 
-function change_all_v1_to_v2(v1, v2)
-{
+function change_all_v1_to_v2(v1, v2) {
   if(v1!==v2) {
     let label = v1.label;
     for(let i=0; i<triangles.length; ++i) {
@@ -221,6 +220,7 @@ function change_all_v1_to_v2(v1, v2)
     return_label_if_poss(label);
   }
 }
+
 function is_inside_triangle(triangle, P) {
   let denominator = ((triangle.vertices[1].y - triangle.vertices[2].y) * (triangle.vertices[0].x - triangle.vertices[2].x) +
                  (triangle.vertices[2].x - triangle.vertices[1].x) * (triangle.vertices[0].y - triangle.vertices[2].y));
@@ -270,9 +270,7 @@ canvas.addEventListener('mousedown', function(event) {
       if (glue_condidate_1==-1) {
           glue_condidate_1 = current_point;
           triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].picked = true;
-      }
-      else
-      {
+      } else {
         if(can_glue(glue_condidate_1, current_point)) glue(glue_condidate_1, current_point);
         triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].picked = false;
         glue_condidate_1 = -1;
@@ -280,7 +278,7 @@ canvas.addEventListener('mousedown', function(event) {
     }
   }
   else
-    if(current_point==-1){
+    if(current_point==-1) {
       current_triangle = pick_triangle(new Vertice(x,y));
     }
 });
@@ -292,7 +290,7 @@ canvas.addEventListener('mouseup', function(event) {
 });
 
 canvas.addEventListener('mousemove', function(event) {
-  if(current_point!=-1){
+  if(current_point!=-1) {
     let x = event.offsetX;
     let y = event.offsetY;
     let triangle = current_point[0]
@@ -303,14 +301,13 @@ canvas.addEventListener('mousemove', function(event) {
     if(closest!=-1) {
       let closest_triangle = closest[0];
       let closest_vertice  = closest[1];
-      if(can_glue(current_point, closest))
+      if(can_glue(closest,current_point))
         change_all_v1_to_v2(triangles[triangle].vertices[triangle_vertice], triangles[closest_triangle].vertices[closest_vertice]);    
     }
-  }
-  else if(current_triangle!=-1){
+  } else if(current_triangle!=-1) {
     var dx = event.movementX;
     var dy = event.movementY;
-    for(let i=0; i<3; ++i){
+    for(let i=0; i<3; ++i) {
       triangles[current_triangle].vertices[i].x += dx; 
       triangles[current_triangle].vertices[i].y += dy; 
     }    
@@ -323,30 +320,29 @@ canvas.addEventListener('dblclick', function(event) {
   let picked = pick_triangle(new Vertice(x,y));
   if(picked!=-1){
     delete_triangle(picked);
-  }
-  else{
+  } else {
     add_triangle(x, y);
   }
 });
 
 /////////////////////////////////////// math 
 
-function set_triangles(tt){
+function set_triangles(tt) {
    let triangles = []
    for (let t of tt)
       triangles.push(t.split("").sort().join(""))
    return triangles
 }
 
-function get_complex(tt){
+function get_complex(tt) {
    let parts = new Set();
    for (let t of tt)
-       [t, t[0], t[1], t[2], [t[0],t[1]].sort().join(""),[t[1],t[2]].sort().join(""), [t[0],t[2]].sort().join("")].forEach(x=>parts.add(x))
-   let complex_ = [...parts].sort()
-   return complex_
+       [t, t[0], t[1], t[2], [t[0],t[1]].sort().join(""),[t[1],t[2]].sort().join(""), [t[0],t[2]].sort().join("")].forEach(x=>parts.add(x));
+   let complex_ = [...parts].sort();
+   return complex_;
 }
 
-function get_chain_order(complex, order){
+function get_chain_order(complex, order) {
    return complex.filter((c) => c.length == order+1);
 }
    
@@ -356,32 +352,28 @@ function z_div(a, b) {
   let bIsInfinite = b === -Infinity || b === Infinity;
   let aIsNeg = a + 1 / a < 0;
   let bIsNeg = b + 1 / b < 0;
-  return [
-    (aIsInfinite !== bIsInfinite && a) ? aIsInfinite ? NaN : aIsNeg === bIsNeg ? 0 : -1 : Math.floor(a / b),
-    (!a && b < 0) ? -0 : remainder + (remainder !== 0 && aIsNeg !== bIsNeg ? b : 0)
-  ];
+  return [ (aIsInfinite !== bIsInfinite && a) ? aIsInfinite ? NaN : aIsNeg === bIsNeg ? 0 : -1 : Math.floor(a / b),
+           (!a && b < 0) ? -0 : remainder + (remainder !== 0 && aIsNeg !== bIsNeg ? b : 0)];
 }
 
-function z_gcdex(a, b){
+function z_gcdex(a, b) {
   if (a==0 && b==0) return [0, 1, 0];
   if (a==0) return [0, parseInt(b/Math.abs(b)), Math.abs(b)];
   if (b==0) return [parseInt(a/Math.abs(a)), 0, Math.abs(a)];
 
   let x_sign = undefined;
-  if (a < 0){
+  if (a < 0) {
     a = -a;
     x_sign = -1;
-  }
-  else{
+  } else {
     x_sign = 1;
   }
 
   let y_sign = undefined;
-  if (b < 0){
+  if (b < 0) {
     b = -b;
     y_sign = -1;
-  }
-  else{
+  } else {
     y_sign = 1
   }
 
@@ -391,22 +383,22 @@ function z_gcdex(a, b){
   let y = 0;
   let r = 0;
   let s = 1;
-  while (b!=0){
+  while (b!=0) {
     [c, q] = [a % b, parseInt(a / b)];
     [a, b, r, s, x, y] = [b, c, x - q*r, y - q*s, r, s];  
   }
   return [x * x_sign, y * y_sign, a];
 }
 
-function add_columns(m, i, j, a, b, c, d){
-  for(let k=0; k<m.length; ++k){
+function add_columns(m, i, j, a, b, c, d) {
+  for(let k=0; k<m.length; ++k) {
       let e = m[k][i];
       m[k][i] = a*e + b*m[k][j];
       m[k][j] = c*e + d*m[k][j];
   }
 }
 
-function add_rows(m, i, j, a, b, c, d){
+function add_rows(m, i, j, a, b, c, d) {
   for (let k=0; k<m[0].length; ++k) {
     let e = m[i][k];
     m[i][k] = a*e + b*m[j][k];
@@ -414,33 +406,31 @@ function add_rows(m, i, j, a, b, c, d){
   }
 }
 
-function clear_column(m){
+function clear_column(m) {
   if(m[0][0] == 0) return m;
   let pivot = m[0][0];
-  for (let j=1; j<m.length; ++j){
+  for (let j=1; j<m.length; ++j) {
     if (m[j][0] == 0) continue;
     let d = undefined;
     let r = undefined;
     [d, r] = z_div(m[j][0], pivot)
-    if (r==0){
+    if (r==0) {
         add_rows(m, 0, j, 1, 0, -d, 1);
-    }
-    else{
-        let a = undefined;
-        let b = undefined;
-        let g = undefined;
-        [a, b, g] = z_gcdex(pivot, m[j][0]);
-        let d_0 = z_div(m[j][0], g)[0];
-        let d_j = z_div(pivot, g)[0];
-        add_rows(m, 0, j, a, b, d_0, -d_j);
-        pivot = g;
+    } else {
+      let a = undefined;
+      let b = undefined;
+      let g = undefined;
+      [a, b, g] = z_gcdex(pivot, m[j][0]);
+      let d_0 = z_div(m[j][0], g)[0];
+      let d_j = z_div(pivot, g)[0];
+      add_rows(m, 0, j, a, b, d_0, -d_j);
+      pivot = g;
     }
   }
   return m;
 }
 
-function add_grid(x,y)
-{
+function add_grid(x,y) {
   let d = 90;
   let n = 3;
   let m = 3;
@@ -460,7 +450,7 @@ function add_grid(x,y)
   }
 }
 
-function clear_row(m){
+function clear_row(m) {
   if (m[0][0] == 0) return m;
   let pivot = m[0][0];
   for(let j=1; j<m[0].length; ++j){
@@ -470,8 +460,7 @@ function clear_row(m){
     [d, r] = z_div(m[0][j], pivot)
     if (r==0){
         add_columns(m, 0, j, 1, 0, -d, 1)
-    }
-    else{
+    } else {
         let a = undefined;
         let b = undefined;
         let g = undefined;
@@ -485,7 +474,7 @@ function clear_row(m){
   return m;
 }
 
-function invariant_factors(m){
+function invariant_factors(m) {
   if (m.length==0 || m[0].length==0) return [];
   let ind = [];
   for(let i=0; i<m.length; ++i)
@@ -493,8 +482,7 @@ function invariant_factors(m){
 
   if (ind.length>0 && ind[0] != 0){
     [m[0], m[ind[0]]] = [m[ind[0]], m[0]];
-  }
-  else{
+  } else {
     let ind = [];
     for(let j=0; j<m[0].length; ++j)
       if(m[0][j] != 0) ind.push(j)
@@ -555,9 +543,6 @@ function invariant_factors(m){
   return result;
 }
 
-
-
-
 function calculate_boundary(tt){
   let n = tt.length;
   let matrix = new Object();
@@ -587,7 +572,7 @@ function calculate_boundary(tt){
   let rank  = 0;
   let torsion = [];
   for (let f of smith) {
-    if(f!=0){
+    if(f!=0) {
       rank++;
       if(Math.abs(f)!=1) torsion.push(f);
     } 
@@ -609,17 +594,17 @@ function check_triangles(tt)
 }
 
 function get_mathjax_expression(m, v, k) {
-  let out_string="$$ \n";
-  out_string +="\\begin{pmatrix}\n";
+  let out_string = "$$ \n";
+  out_string += "\\begin{pmatrix}\n";
   for(let i=0; i<v.length; ++i) {
-    if(i!=0) out_string += "\\\\ \n"
+    if(i!=0) out_string += "\\\\ \n";
     out_string += "k_{"+v[i].toString()+"}"; 
   } 
   out_string += "\\end{pmatrix} = ";
-  out_string +="\n \\begin{pmatrix}\n";
+  out_string += "\n \\begin{pmatrix}\n";
   for(let i=0; i<m.length; ++i) {
     let row = "";
-    if(i!=0) row += "\\\\ \n"
+    if(i!=0) row += "\\\\ \n";
     for(let j=0; j<m[0].length; ++j) {
       if(j!=0) row += "&";
       row += m[i][j].toString(); 
@@ -627,10 +612,10 @@ function get_mathjax_expression(m, v, k) {
   out_string += row;
   }
   out_string += "\\end{pmatrix}";
-  out_string +="\\begin{pmatrix}\n";
-  if(k.length>0){
+  out_string += "\\begin{pmatrix}\n";
+  if(k.length>0) {
     for(let i=0; i<k.length; ++i) {
-      if(i!=0) out_string += "\\\\ \n"
+      if(i!=0) out_string += "\\\\ \n";
       out_string += "k_{"+(k[i]).toString()+"}"; 
     }
   }
@@ -638,6 +623,7 @@ function get_mathjax_expression(m, v, k) {
   out_string += "\n$$";
   return out_string;
 }
+
 function function_b2(m, v, k) {
   let b2_matrix_text = get_mathjax_expression(m, v, k);
   let matrix_div = document.getElementById('b2_matrix');
@@ -645,12 +631,12 @@ function function_b2(m, v, k) {
   matrix_div.innerHTML = b2_matrix_text;
   MathJax.typesetClear([output]);
   MathJax.typesetPromise([output]).then(() => {});
-  if(matrix_div.style.display=="none"){
+  if(matrix_div.style.display=="none") {
     matrix_div.style.display = "block";
-    btn.innerText = "▼"
+    btn.innerText = "▼";
   } else {
     matrix_div.style.display = "none";
-    btn.innerText = "▶"
+    btn.innerText = "▶";
   }
 }
 
@@ -661,12 +647,12 @@ function function_b1(m, v, k) {
   matrix_div.innerHTML = b1_matrix_text;
   MathJax.typesetClear([output]);
   MathJax.typesetPromise([output]).then(() => {});
-  if(matrix_div.style.display=="none"){
+  if(matrix_div.style.display=="none") {
     matrix_div.style.display = "block";
-    btn.innerText = "▼"
+    btn.innerText = "▼";
   } else {
     matrix_div.style.display = "none";
-    btn.innerText = "▶"
+    btn.innerText = "▶";
   }
 }
 
@@ -679,14 +665,12 @@ function recalculate_math() {
   let b2 = undefined;
   let tt = set_triangles(out_triangles);
   let tt_status = check_triangles(tt);
-   if(!tt_status[0]){
+  if(!tt_status[0]) {
     output.style.color = "red";
     out_string += "Duplicate triangle : \\(" + tt_status[1].toString() + "\\)";
-  }
-  else{  
+  } else{  
     output.style.color = "black";
-    out_string += "triangles  : \\("+tt.toString()+"\\)";
-      
+    out_string += "triangles  : \\("+tt.toString()+"\\)";  
     let complex_ = get_complex(tt);
     //out_string += "<br> complex  : \\(" + complex_.toString() + "\\)";
     let ch0 = get_chain_order(complex_, 0);
@@ -696,13 +680,13 @@ function recalculate_math() {
     let ch2 = get_chain_order(complex_, 2);
     out_string += "<br> 2-chain  : \\(" + ch2.toString() + "\\)";
     let b0 = calculate_boundary(ch0);
-    out_string += "<br><br> &nbsp 0-boundary : dim = \\(" + b0.dim.toString() + "\\); rank = \\(" + b0.rank.toString() + "\\).";
+    out_string += "<br><br> &nbsp &nbsp 0-boundary : dim = \\(" + b0.dim.toString() + "\\); rank = \\(" + b0.rank.toString() + "\\).";
     b1 = calculate_boundary(ch1);
-    out_string += "<br><button id='BTN1' style='border:none; background-color: white; width:20px'> ▶ </button>";
+    out_string += "<br><button id='BTN1' style='border:none; background-color: white; width:17px'> ▶ </button>";
     out_string += "1-boundary : dim = \\(" + b1.dim.toString() + "\\); rank = \\(" + b1.rank.toString() + "\\); " + "Smith = \\(["+ b1.smith_invs.toString()+"].\\)";
     out_string += "<div id='b1_matrix' style=\"display:none\"></div>";   
     b2 = calculate_boundary(ch2);
-    out_string += "<br><button id='BTN2' style='border:none; background-color: white; width:20px'> ▶ </button>";
+    out_string += "<br><button id='BTN2' style='border:none; background-color: white; width:17px'> ▶ </button>";
     out_string += "2-boundary : dim = \\(" + b2.dim.toString() + "\\); rank = \\(" + b2.rank.toString() + "\\); " + "Smith = \\(["+ b2.smith_invs.toString()+"].\\)";
     out_string += "<div id='b2_matrix' style=\"display:none\"></div>";
     let conn_components = b1.dim - b1.rank - b0.rank;
@@ -722,8 +706,10 @@ function recalculate_math() {
   MathJax.typesetClear([output]);
   MathJax.typesetPromise([output]).then(() => {});
 
-  document.getElementById('BTN1').onclick = () => {function_b1(b1.m, b1.v, b1.k)};
-  document.getElementById('BTN2').onclick = () => {function_b2(b2.m, b2.v, b2.k)};
+  if(tt_status[0]) {
+    document.getElementById('BTN1').onclick = () => {function_b1(b1.m, b1.v, b1.k)};
+    document.getElementById('BTN2').onclick = () => {function_b2(b2.m, b2.v, b2.k)};
+  }
 }
 
 update();
