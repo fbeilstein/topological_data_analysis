@@ -505,50 +505,74 @@ function calculate_boundary(tt){
   return {"dim" : m_dim, "rank" : rank, "smith invs" : smith, "torsion" : torsion};
 }
 
+function check_triangles(tt)
+{
+  let set = new Set();
+  for(let t of tt)
+  {
+    console.log("t:",t);
+    if(set.has(t))
+      return [false, t];
+    else
+      set.add(t);   
+  }
+     return [true, ];
+}
+
 function recalculate_math(){
   let out_triangles = [];
   for(let i=0; i<triangles.length; ++i)
     out_triangles.push(triangles[i].vertices[0].label+triangles[i].vertices[1].label+triangles[i].vertices[2].label);
   out_string = "";
   let tt = set_triangles(out_triangles);
-  out_string += "triangles  : \\("+tt.toString()+"\\)";
+  
+  let tt_status = check_triangles(tt);
+  console.log(tt_status);
+  if(!tt_status[0]){
+    output.style.color = "red";
+    out_string += "Duplicate triangle : \\(" + tt_status[1].toString() + "\\)";
+  }
+  else{  
+    output.style.color = "black";
+    out_string += "triangles  : \\("+tt.toString()+"\\)";
+      
+    let complex_ = get_complex(tt);
+    out_string += "\n complex  : \\("+complex_.toString()+"\\)";
+    let ch0 = get_chain_order(complex_, 0);
+    out_string += "\n\n 0-chain   : \\("+ch0.toString()+"\\)";
+    let ch1 = get_chain_order(complex_, 1);
+    out_string += "\n 1-chain   : \\("+ch1.toString()+"\\)";
+    let ch2 = get_chain_order(complex_, 2);
+    out_string += "\n 2-chain  : \\("+ch2.toString()+"\\)";
+
+    let b0 = calculate_boundary(ch0);
+    out_string += "\n\n 0-boundary : "+JSON.stringify(b0);
+    let b1 = calculate_boundary(ch1);
+    out_string += "\n 1-boundary : "+JSON.stringify(b1);
+    let b2 = calculate_boundary(ch2);
+    out_string += "\n 2-boundary : "+JSON.stringify(b2);
+      
+    let conn_components = b1.dim - b1.rank - b0.rank;
+    out_string += "\n\nconnected components: \\(" + conn_components.toString()+"\\)";
+    let holes = b2.dim - b2.rank - b1.rank;
+    out_string += "\nholes : \\(" + holes.toString()+"\\)";
+
+    let voids = out_triangles.length - b2.rank;
+    out_string += "\n voids :  \\(" + voids.toString()+"\\)";
+
+
+    out_string += "\n\n \\( H_0(K) \\cong \\mathbb{Z}^{" + conn_components.toString() + "}\\)"; // ??
+
+    out_string += "\n \\( H_1(K) \\cong \\mathbb{Z}^{" + holes.toString() + "}"; 
+    for (let t of b2.torsion)
+      out_string += "\\oplus \\mathbb{Z}_{" + Math.abs(t).toString() + "}";
+    out_string += "\\)";  
+
+    out_string += "\n \\( H_2(K) \\cong \\mathbb{Z}^{" + voids.toString() + "}\\)"; // ??
+
     
-  let complex_ = get_complex(tt);
-  out_string += "\n complex  : \\("+complex_.toString()+"\\)";
-  let ch0 = get_chain_order(complex_, 0);
-  out_string += "\n\n 0-chain   : \\("+ch0.toString()+"\\)";
-  let ch1 = get_chain_order(complex_, 1);
-  out_string += "\n 1-chain   : \\("+ch1.toString()+"\\)";
-  let ch2 = get_chain_order(complex_, 2);
-  out_string += "\n 2-chain  : \\("+ch2.toString()+"\\)";
-
-  let b0 = calculate_boundary(ch0);
-  out_string += "\n\n 0-boundary : "+JSON.stringify(b0);
-  let b1 = calculate_boundary(ch1);
-  out_string += "\n 1-boundary : "+JSON.stringify(b1);
-  let b2 = calculate_boundary(ch2);
-  out_string += "\n 2-boundary : "+JSON.stringify(b2);
-    
-  let conn_components = b1.dim - b1.rank - b0.rank;
-  out_string += "\n\nconnected components: \\(" + conn_components.toString()+"\\)";
-  let holes = b2.dim - b2.rank - b1.rank;
-  out_string += "\nholes : \\(" + holes.toString()+"\\)";
-
-  let voids = out_triangles.length - b2.rank;
-  out_string += "\n voids :  \\(" + voids.toString()+"\\)";
-
-
-  out_string += "\n\n \\( H_0(K) \\cong \\mathbb{Z}^{" + conn_components.toString() + "}\\)"; // ??
-
-  out_string += "\n \\( H_1(K) \\cong \\mathbb{Z}^{" + holes.toString() + "}"; 
-  for (let t of b2.torsion)
-    out_string += "\\oplus \\mathbb{Z}_{" + t.toString() + "}";
-  out_string += "\\)";  
-
-  out_string += "\n \\( H_2(K) \\cong \\mathbb{Z}^{" + voids.toString() + "}\\)"; // ??
-
+  }
   output.innerText = out_string;
-
   MathJax.typesetClear([output]);
   output.innerText = out_string;
   MathJax.typesetPromise([output]).then(() => {});
