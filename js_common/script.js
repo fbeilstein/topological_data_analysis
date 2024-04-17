@@ -172,6 +172,13 @@ function change_all_v1_to_v2(v1, v2)
   if(v1!==v2) {
     let label = v1.label;
     for(let i=0; i<triangles.length; ++i) {
+      let common_vert = 0;
+      for(let j=0; j<3; ++j) {
+        common_vert += (triangles[i].vertices[j]===v1) + (triangles[i].vertices[j]===v2);
+      }
+      if(common_vert==2) return;
+    }
+    for(let i=0; i<triangles.length; ++i) {
       for(let j=0; j<3; ++j) {
         if (triangles[i].vertices[j]===v1)
           triangles[i].vertices[j] = v2;
