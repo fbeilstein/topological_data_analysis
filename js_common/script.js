@@ -60,7 +60,7 @@ function get_closest_vertice(v) {
   return -1;
 }
 
-const RR_1 = 12*12;
+const RR_1 = 15*15;
 function get_closest_vertice_except_self(v) {
   for(let i=0; i<triangles.length; ++i)
     for(let j=0; j<3; ++j) {
@@ -558,16 +558,14 @@ function check_triangles(tt)
      return [true, ];
 }
 
-function get_mathjax_expression(m,v, k) {
+function get_mathjax_expression(m, v, k) {
   let out_string="$$ \n";
   out_string +="\\begin{pmatrix}\n";
   for(let i=0; i<v.length; ++i) {
     if(i!=0) out_string += "\\\\ \n"
     out_string += "k_{"+v[i].toString()+"}"; 
-  }
-  
+  } 
   out_string += "\\end{pmatrix} = ";
-
   out_string +="\n \\begin{pmatrix}\n";
   for(let i=0; i<m.length; ++i) {
     let row = "";
@@ -579,7 +577,6 @@ function get_mathjax_expression(m,v, k) {
   out_string += row;
   }
   out_string += "\\end{pmatrix}";
-
   out_string +="\\begin{pmatrix}\n";
   if(k.length>0){
     for(let i=0; i<k.length; ++i) {
@@ -591,48 +588,46 @@ function get_mathjax_expression(m,v, k) {
   out_string += "\n$$";
   return out_string;
 }
-function function_b2(x,y,z)
-{
-  let b2_matrix_text = get_mathjax_expression(x,y,z);
-  let temp = document.getElementById('b2_matrix');
+function function_b2(m, v, k) {
+  let b2_matrix_text = get_mathjax_expression(m, v, k);
+  let matrix_div = document.getElementById('b2_matrix');
   let btn = document.getElementById('BTN2');
-  temp.innerHTML = b2_matrix_text;
+  matrix_div.innerHTML = b2_matrix_text;
   MathJax.typesetClear([output]);
   MathJax.typesetPromise([output]).then(() => {});
-  if(temp.style.display=="none"){
-    temp.style.display = "block";
+  if(matrix_div.style.display=="none"){
+    matrix_div.style.display = "block";
     btn.innerText = "▼"
   } else {
-    temp.style.display = "none";
+    matrix_div.style.display = "none";
     btn.innerText = "▶"
   }
 }
 
-function function_b1(x,y,z)
-{
-  let b1_matrix_text = get_mathjax_expression(x,y,z);
-  let temp = document.getElementById('b1_matrix');
+function function_b1(m, v, k) {
+  let b1_matrix_text = get_mathjax_expression(m, v, k);
+  let matrix_div = document.getElementById('b1_matrix');
   let btn = document.getElementById('BTN1');
-  temp.innerHTML = b1_matrix_text;
+  matrix_div.innerHTML = b1_matrix_text;
   MathJax.typesetClear([output]);
   MathJax.typesetPromise([output]).then(() => {});
-  if(temp.style.display=="none"){
-    temp.style.display = "block";
+  if(matrix_div.style.display=="none"){
+    matrix_div.style.display = "block";
     btn.innerText = "▼"
   } else {
-    temp.style.display = "none";
+    matrix_div.style.display = "none";
     btn.innerText = "▶"
   }
 }
 
-function recalculate_math(){
+function recalculate_math() {
   let out_triangles = [];
   for(let i=0; i<triangles.length; ++i)
     out_triangles.push(triangles[i].vertices[0].label+triangles[i].vertices[1].label+triangles[i].vertices[2].label);
   out_string = "";
+  let b1 = undefined;
+  let b2 = undefined;
   let tt = set_triangles(out_triangles);
-  let b1 = -1;
-  let b2 = -1;
   let tt_status = check_triangles(tt);
    if(!tt_status[0]){
     output.style.color = "red";
@@ -643,54 +638,42 @@ function recalculate_math(){
     out_string += "triangles  : \\("+tt.toString()+"\\)";
       
     let complex_ = get_complex(tt);
-    out_string += "<br> complex  : \\("+complex_.toString()+"\\)";
+    out_string += "<br> complex  : \\(" + complex_.toString() + "\\)";
     let ch0 = get_chain_order(complex_, 0);
-    out_string += "<br><br> 0-chain   : \\("+ch0.toString()+"\\)";
+    out_string += "<br><br>0-chain   : \\(" + ch0.toString() + "\\)";
     let ch1 = get_chain_order(complex_, 1);
-    out_string += "<br> 1-chain   : \\("+ch1.toString()+"\\)";
+    out_string += "<br> 1-chain   : \\(" + ch1.toString() + "\\)";
     let ch2 = get_chain_order(complex_, 2);
-    out_string += "<br> 2-chain  : \\("+ch2.toString()+"\\)";
+    out_string += "<br> 2-chain  : \\(" + ch2.toString() + "\\)";
     let b0 = calculate_boundary(ch0);
-    out_string += "<br><br>0-boundary : "+ "dim = \\(" + b0.dim.toString() + "\\);" + " rank = \\(" + b0.rank.toString() + "\\); "+ "Smith = \\(["+ b0.smith_invs.toString()+"].\\)";
+    out_string += "<br><br> &nbsp 0-boundary : dim = \\(" + b0.dim.toString() + "\\); rank = \\(" + b0.rank.toString() + "\\).";
     b1 = calculate_boundary(ch1);
-    out_string += "<br><button id='BTN1' style='border:none; background-color: white;'> ▶ </button>";
-    out_string += "1-boundary : "+ "dim = \\(" + b1.dim.toString() + "\\);" + " rank = \\(" + b1.rank.toString() + "\\); "+ "Smith = \\(["+ b1.smith_invs.toString()+"].\\)";
-    out_string += "<div id='b1_matrix' style=\"display:none\"></div>";
-    
+    out_string += "<br><button id='BTN1' style='border:none; background-color: white; width:20px'> ▶ </button>";
+    out_string += "1-boundary : dim = \\(" + b1.dim.toString() + "\\); rank = \\(" + b1.rank.toString() + "\\); " + "Smith = \\(["+ b1.smith_invs.toString()+"].\\)";
+    out_string += "<div id='b1_matrix' style=\"display:none\"></div>";   
     b2 = calculate_boundary(ch2);
-    out_string += "<br><button id='BTN2' style='border:none; background-color: white;'> ▶ </button>";
-    out_string += "2-boundary : "+ "dim = \\(" + b2.dim.toString() + "\\);" + " rank = \\(" + b2.rank.toString() + "\\); "+ "Smith = \\(["+ b2.smith_invs.toString()+"].\\)";
+    out_string += "<br><button id='BTN2' style='border:none; background-color: white; width:20px'> ▶ </button>";
+    out_string += "2-boundary : dim = \\(" + b2.dim.toString() + "\\); rank = \\(" + b2.rank.toString() + "\\); " + "Smith = \\(["+ b2.smith_invs.toString()+"].\\)";
     out_string += "<div id='b2_matrix' style=\"display:none\"></div>";
-
-
     let conn_components = b1.dim - b1.rank - b0.rank;
-    out_string += "<br><br>connected components: \\(" + conn_components.toString()+"\\)";
+    out_string += "<br><br>connected components: \\(" + conn_components.toString() + "\\)";
     let holes = b2.dim - b2.rank - b1.rank;
-    out_string += "<br>holes : \\(" + holes.toString()+"\\)";
-
+    out_string += "<br>holes : \\(" + holes.toString() + "\\)";
     let voids = out_triangles.length - b2.rank;
     out_string += "<br>voids :  \\(" + voids.toString()+"\\)";
-
-
-    out_string += "<br><br> \\( H_0(K) \\cong \\mathbb{Z}^{" + conn_components.toString() + "}\\)"; // ??
-
+    out_string += "<br><br> \\( H_0(K) \\cong \\mathbb{Z}^{" + conn_components.toString() + "}\\)"; 
     out_string += "<br> \\( H_1(K) \\cong \\mathbb{Z}^{" + holes.toString() + "}"; 
     for (let t of b2.torsion)
       out_string += "\\oplus \\mathbb{Z}_{" + Math.abs(t).toString() + "}";
     out_string += "\\)";  
-
-    out_string += "<br> \\( H_2(K) \\cong \\mathbb{Z}^{" + voids.toString() + "}\\)"; // ??
-
-    
+    out_string += "<br> \\( H_2(K) \\cong \\mathbb{Z}^{" + voids.toString() + "}\\)"; 
   }
   output.innerHTML = out_string;
   MathJax.typesetClear([output]);
   MathJax.typesetPromise([output]).then(() => {});
 
- 
   document.getElementById('BTN1').onclick = () => {function_b1(b1.m, b1.v, b1.k)};
   document.getElementById('BTN2').onclick = () => {function_b2(b2.m, b2.v, b2.k)};
-
 }
 
 update();
