@@ -115,6 +115,14 @@ function delete_triangle(i) {
 }
 
 function draw_triangles() {
+    let set = {}
+    for(let i=0; i<triangles.length; ++i) { 
+      let labels = [triangles[i].vertices[0].label,triangles[i].vertices[1].label,triangles[i].vertices[2].label].sort().join("");
+      if(!set.hasOwnProperty(labels)) 
+        set[labels] = 1;
+      else
+        set[labels] += 1;
+    }
     canvas.style.backgroundColor = "white";
     context.clearRect(0,0, canvas.width, canvas.height);
     context.strokeStyle = "gray";
@@ -122,6 +130,11 @@ function draw_triangles() {
     context.lineWidth = 1;
     context.beginPath();
     for(let i=0; i<triangles.length; ++i) {
+      let labels = [triangles[i].vertices[0].label,triangles[i].vertices[1].label,triangles[i].vertices[2].label].sort().join("");
+      if(set[labels]==1)
+        context.fillStyle = 'lightgreen';
+      else
+        context.fillStyle = 'LightPink';
       context.moveTo(triangles[i].vertices[0].x, triangles[i].vertices[0].y);
       for(let j=0; j<3; ++j) {
         context.lineTo(triangles[i].vertices[j].x, triangles[i].vertices[j].y);
@@ -167,6 +180,25 @@ function update() {
   requestAnimationFrame(update);
 }
 
+function glue_labels(x, y) { // y gets label from x
+  for(let i=0; i<triangles.length; ++i)
+  {
+    let has_y = 0;
+    let has_x_label = 0;
+    for(let j=0; j<3; ++j){
+      has_y += (triangles[i].vertices[j]===triangles[y[0]].vertices[y[1]]);
+      has_x_label += (triangles[i].vertices[j].label===triangles[x[0]].vertices[x[1]].label);
+    
+    }
+    console.log("x= : ", x, "y = ", y)
+    console.log("yos : ", i, has_y, has_x_label)
+    if(has_y && has_x_label) return;
+  }
+
+  triangles[y[0]].vertices[y[1]].label = triangles[x[0]].vertices[x[1]].label
+  return_label_if_poss(triangles[y[0]].vertices[y[1]].label);
+}
+
 function change_all_v1_to_v2(v1, v2)
 {
   if(v1!==v2) {
@@ -207,7 +239,7 @@ document.addEventListener('keyup', function(event) {
 canvas.addEventListener('mousedown', function(event) {
   let x = event.offsetX;
   let y = event.offsetY;
-  if(event.shiftKey) {
+  if(event.shiftKey) { //add grid
     add_grid(x,y);
     return;
   }
@@ -219,7 +251,7 @@ canvas.addEventListener('mousedown', function(event) {
       return;
     }
   }
-  if(event.ctrlKey) {
+  if(event.ctrlKey) { // glue
     if(current_point!=-1) {
       if (glue_condidate_1==-1) {
           glue_condidate_1 = current_point;
@@ -227,12 +259,8 @@ canvas.addEventListener('mousedown', function(event) {
       }
       else
       {
-        if(triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].label!=triangles[current_point[0]].vertices[current_point[1]].label) 
-        { 
-          triangles[current_point[0]].vertices[current_point[1]].label = triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].label
-          triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].picked = false;
-          return_label_if_poss(triangles[current_point[0]].vertices[current_point[1]].label);
-        }
+        glue_labels(glue_condidate_1, current_point);
+        triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].picked = false;
         glue_condidate_1 = -1;
       }
     }
