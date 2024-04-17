@@ -23,6 +23,10 @@ body{
     color : lightgray;
 }
 
+#info:hover{
+    color : gray;
+}
+
 .container{
     padding-top: 20px;
     display : flex;
