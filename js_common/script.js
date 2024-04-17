@@ -52,50 +52,34 @@ function get_distance(a,b) {
 }
 
 const RR = 15*15;
-function get_closest_vertice(x,y) {
+function get_closest_vertice(v) {
   for(let i=0; i<triangles.length; ++i)
     for(let j=0; j<3; ++j) {
-    let rr = (triangles[i].vertices[j].x-x)*(triangles[i].vertices[j].x-x)+(triangles[i].vertices[j].y-y)*(triangles[i].vertices[j].y-y);
-    if(rr<RR) return [i,j];
+      if(get_distance(triangles[i].vertices[j], v)<RR) return [i,j];
   }
   return -1;
 }
 
-function get_closest_vertice_except_self(x,y) {
+function get_closest_vertice_except_self(v) {
   for(let i=0; i<triangles.length; ++i)
     for(let j=0; j<3; ++j) {
-    let rr = (triangles[i].vertices[j].x-x)*(triangles[i].vertices[j].x-x)+(triangles[i].vertices[j].y-y)*(triangles[i].vertices[j].y-y);
-    if(rr<RR && rr>1) return [i,j];
+      if(triangles[i].vertices[j]!==v){
+          if(get_distance(triangles[i].vertices[j], v)<RR) return [i,j];
+      }
   }
   return -1;
 }
 
-function return_label_if_poss_1(label) {
-  let set = new Set();
+function return_label_if_poss(label) {
   for(let i=0; i<triangles.length; ++i) {
       for(let j=0; j<3; ++j) {
         if (triangles[i].vertices[j].label == label) {
-          set.add(triangles[i].vertices[j]);
+          return;
         }
       }
     }
-    if(set.size==1) 
-      label_allocator.return_label(label);
+    label_allocator.return_label(label);
 }
-
-function return_label_if_poss_2(label) {
-  let set = new Set();
-  for(let i=0; i<triangles.length; ++i) {
-      for(let j=0; j<3; ++j) {
-        if (triangles[i].vertices[j].label == label) {
-          set.add(triangles[i]);
-        }
-      }
-    }
-    if(set.size==1) 
-      label_allocator.return_label(label);
-}
-
 
 const new_triangle_scale = 30;
 function add_triangle(x,y) {
@@ -117,11 +101,11 @@ function pick_triangle(vertice) {
 }
 
 function delete_triangle(i) {
-  for(let j=0; j<3; ++j) 
-    return_label_if_poss_2(triangles[i].vertices[j].label);
   if(i+1!=triangles.length) 
       [triangles[i], triangles[triangles.length-1]] = [triangles[triangles.length-1], triangles[i]];
   triangles.splice(-1);
+  for(let j=0; j<3; ++j) 
+    return_label_if_poss(triangles[i].vertices[j].label);
   recalculate_math();
 }
 
@@ -178,6 +162,19 @@ function update() {
   requestAnimationFrame(update);
 }
 
+function change_all_v1_to_v2(v1, v2)
+{
+  if(v1!==v2) {
+    let label = v1.label;
+    for(let i=0; i<triangles.length; ++i) {
+      for(let j=0; j<3; ++j) {
+        if (triangles[i].vertices[j]===v1)
+          triangles[i].vertices[j] = v2;
+      }
+    }
+    return_label_if_poss(label);
+  }
+}
 function is_inside_triangle(triangle, P) {
   let denominator = ((triangle.vertices[1].y - triangle.vertices[2].y) * (triangle.vertices[0].x - triangle.vertices[2].x) +
                  (triangle.vertices[2].x - triangle.vertices[1].x) * (triangle.vertices[0].y - triangle.vertices[2].y));
@@ -199,15 +196,14 @@ canvas.addEventListener('mousedown', function(event) {
   let x = event.offsetX;
   let y = event.offsetY;
   if(event.shiftKey) {
-    console.log("SHIFT");
     add_grid(x,y);
     return;
   }
-  current_point = get_closest_vertice(x,y);
+  current_point = get_closest_vertice(new Vertice(x,y));
   if(event.altKey) {
     if(current_point!=-1) {
-      return_label_if_poss_1(triangles[current_point[0]].vertices[current_point[1]].label);
       triangles[current_point[0]].vertices[current_point[1]].label = label_allocator.get_label();
+      return_label_if_poss(triangles[current_point[0]].vertices[current_point[1]].label);
       return;
     }
   }
@@ -220,10 +216,10 @@ canvas.addEventListener('mousedown', function(event) {
       else
       {
         if(triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].label!=triangles[current_point[0]].vertices[current_point[1]].label) 
-        {
-          return_label_if_poss_1(triangles[current_point[0]].vertices[current_point[1]].label)
+        { 
           triangles[current_point[0]].vertices[current_point[1]].label = triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].label
           triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].picked = false;
+          return_label_if_poss(triangles[current_point[0]].vertices[current_point[1]].label);
         }
         glue_condidate_1 = -1;
       }
@@ -247,19 +243,13 @@ canvas.addEventListener('mousemove', function(event) {
     let y = event.offsetY;
     let triangle = current_point[0]
     let triangle_vertice = current_point[1]
-    let closest = get_closest_vertice_except_self(x,y);
     triangles[triangle].vertices[triangle_vertice].x = x; 
     triangles[triangle].vertices[triangle_vertice].y = y; 
-    if(closest!=-1){
-        let closest_triangle = closest[0];
-        let closest_triangle_vertice = closest[1];    
-        console.log(triangles[triangle].vertices[triangle_vertice],"  ->  ",triangles[closest_triangle].vertices[closest_triangle_vertice])
-        if(triangle !=closest_triangle && triangles[triangle].vertices[triangle_vertice]!=triangles[closest_triangle].vertices[closest_triangle_vertice]) {
-          if(triangles[triangle].vertices[triangle_vertice].label!=triangles[closest_triangle].vertices[closest_triangle_vertice].label) {
-            return_label_if_poss_1(triangles[triangle].vertices[triangle_vertice].label)
-            triangles[triangle].vertices[triangle_vertice] = triangles[closest_triangle].vertices[closest_triangle_vertice]; 
-          }  
-        }
+    let closest = get_closest_vertice_except_self(triangles[triangle].vertices[triangle_vertice]);
+    if(closest!=-1) {
+      let closest_triangle = closest[0];
+      let closest_vertice  = closest[1];
+      change_all_v1_to_v2(triangles[triangle].vertices[triangle_vertice], triangles[closest_triangle].vertices[closest_vertice]);    
     }
   }
   else if(current_triangle!=-1){
@@ -543,7 +533,6 @@ function check_triangles(tt)
   let set = new Set();
   for(let t of tt)
   {
-    console.log("t:",t);
     if(set.has(t))
       return [false, t];
     else
@@ -560,8 +549,7 @@ function recalculate_math(){
   let tt = set_triangles(out_triangles);
   
   let tt_status = check_triangles(tt);
-  console.log(tt_status);
-  if(!tt_status[0]){
+   if(!tt_status[0]){
     output.style.color = "red";
     out_string += "Duplicate triangle : \\(" + tt_status[1].toString() + "\\)";
   }
