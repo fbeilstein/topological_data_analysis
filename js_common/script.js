@@ -2,8 +2,8 @@ let canvas = document.getElementById("canvas");
 let output = document.getElementById("output");
 let context = canvas.getContext("2d");
 
-canvas.width  = 700;
-canvas.height = 700;
+canvas.width  = 600;
+canvas.height = 600;
 
 class Alphabet{
   constructor(){
@@ -105,6 +105,11 @@ function add_triangle(x,y) {
   recalculate_math();
 }
 
+function add_triangle_v(v1, v2, v3) {
+  triangles.push(new Triangle(v1,v2,v3));
+  recalculate_math();
+}
+
 function pick_triangle(vertice) {
   for(let i=0; i<triangles.length; ++i)
     if(is_inside_triangle(triangles[i], vertice)) return i;
@@ -193,6 +198,11 @@ document.addEventListener('keyup', function(event) {
 canvas.addEventListener('mousedown', function(event) {
   let x = event.offsetX;
   let y = event.offsetY;
+  if(event.shiftKey) {
+    console.log("SHIFT");
+    add_grid(x,y);
+    return;
+  }
   current_point = get_closest_vertice(x,y);
   if(event.altKey) {
     if(current_point!=-1) {
@@ -243,10 +253,12 @@ canvas.addEventListener('mousemove', function(event) {
     if(closest!=-1){
         let closest_triangle = closest[0];
         let closest_triangle_vertice = closest[1];    
+        console.log(triangles[triangle].vertices[triangle_vertice],"  ->  ",triangles[closest_triangle].vertices[closest_triangle_vertice])
         if(triangle !=closest_triangle && triangles[triangle].vertices[triangle_vertice]!=triangles[closest_triangle].vertices[closest_triangle_vertice]) {
-          if(triangles[triangle].vertices[triangle_vertice].label!=triangles[closest_triangle].vertices[closest_triangle_vertice].label) 
+          if(triangles[triangle].vertices[triangle_vertice].label!=triangles[closest_triangle].vertices[closest_triangle_vertice].label) {
             return_label_if_poss_1(triangles[triangle].vertices[triangle_vertice].label)
             triangles[triangle].vertices[triangle_vertice] = triangles[closest_triangle].vertices[closest_triangle_vertice]; 
+          }  
         }
     }
   }
@@ -380,6 +392,27 @@ function clear_column(m){
     }
   }
   return m;
+}
+
+function add_grid(x,y)
+{
+  let d = 90;
+  let n = 3;
+  let m = 3;
+  let vertices = [];
+  for(let i=0; i<=m; ++i) {
+    let row = [];
+    for(let j=0; j<=n; ++j) {
+      row.push(new Vertice(x+d*i, y+d*j, label_allocator.get_label())); 
+    }
+    vertices.push(row);
+  }
+  for(let i=0; i<m; ++i) {
+    for(let j=0; j<n; ++j) {
+      add_triangle_v(vertices[i][j],vertices[i+1][j],vertices[i+1][j+1]);
+      add_triangle_v(vertices[i][j],vertices[i][j+1],vertices[i+1][j+1]);
+    }
+  }
 }
 
 function clear_row(m){
