@@ -645,7 +645,7 @@ function recalculate_math() {
     out_string += "triangles  : \\("+tt.toString()+"\\)";
       
     let complex_ = get_complex(tt);
-    out_string += "<br> complex  : \\(" + complex_.toString() + "\\)";
+    //out_string += "<br> complex  : \\(" + complex_.toString() + "\\)";
     let ch0 = get_chain_order(complex_, 0);
     out_string += "<br><br>0-chain   : \\(" + ch0.toString() + "\\)";
     let ch1 = get_chain_order(complex_, 1);
