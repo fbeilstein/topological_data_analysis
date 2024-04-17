@@ -123,12 +123,11 @@ function draw_triangles() {
       else
         set[labels] += 1;
     }
-    console.log("set", set);
+
     canvas.style.backgroundColor = "white";
     context.clearRect(0,0, canvas.width, canvas.height);
     for(let i=0; i<triangles.length; ++i) {
       let labels = [triangles[i].vertices[0].label,triangles[i].vertices[1].label,triangles[i].vertices[2].label].sort().join("");
-      console.log(labels, set[labels])
       if(set[labels]==1)
         context.fillStyle = 'lightgreen';
       else
@@ -182,7 +181,7 @@ function update() {
   requestAnimationFrame(update);
 }
 
-function glue_labels(x, y) { // y gets label from x
+function can_glue(x,y){
   for(let i=0; i<triangles.length; ++i)
   {
     let has_y = 0;
@@ -192,11 +191,12 @@ function glue_labels(x, y) { // y gets label from x
       has_x_label += (triangles[i].vertices[j].label===triangles[x[0]].vertices[x[1]].label);
     
     }
-    console.log("x= : ", x, "y = ", y)
-    console.log("yos : ", i, has_y, has_x_label)
-    if(has_y && has_x_label) return;
+    if(has_y && has_x_label) false;
   }
+  return true;
 
+}
+function glue(x, y) { // y gets label from x
   triangles[y[0]].vertices[y[1]].label = triangles[x[0]].vertices[x[1]].label
   return_label_if_poss(triangles[y[0]].vertices[y[1]].label);
 }
@@ -238,6 +238,19 @@ document.addEventListener('keyup', function(event) {
   glue_condidate_1 = -1;
 });
 
+function split(v) {
+  let vertice = triangles[v[0]].vertices[v[1]]; 
+  let label = triangles[v[0]].vertices[v[1]].label;
+  for(let i=0; i<triangles.length; ++i){
+    for(let j=0; j<3; ++j){
+      if(triangles[i].vertices[j]===vertice){
+        triangles[i].vertices[j] = new Vertice(triangles[i].vertices[j].x, triangles[i].vertices[j].y, label_allocator.get_label()); 
+      }
+    }
+  }
+  return_label_if_poss(label);
+}
+
 canvas.addEventListener('mousedown', function(event) {
   let x = event.offsetX;
   let y = event.offsetY;
@@ -248,8 +261,7 @@ canvas.addEventListener('mousedown', function(event) {
   current_point = get_closest_vertice(new Vertice(x,y));
   if(event.altKey) {
     if(current_point!=-1) {
-      triangles[current_point[0]].vertices[current_point[1]].label = label_allocator.get_label();
-      return_label_if_poss(triangles[current_point[0]].vertices[current_point[1]].label);
+      split(current_point);
       return;
     }
   }
@@ -261,7 +273,7 @@ canvas.addEventListener('mousedown', function(event) {
       }
       else
       {
-        glue_labels(glue_condidate_1, current_point);
+        if(can_glue(glue_condidate_1, current_point)) glue(glue_condidate_1, current_point);
         triangles[glue_condidate_1[0]].vertices[glue_condidate_1[1]].picked = false;
         glue_condidate_1 = -1;
       }
@@ -291,7 +303,8 @@ canvas.addEventListener('mousemove', function(event) {
     if(closest!=-1) {
       let closest_triangle = closest[0];
       let closest_vertice  = closest[1];
-      change_all_v1_to_v2(triangles[triangle].vertices[triangle_vertice], triangles[closest_triangle].vertices[closest_vertice]);    
+      if(can_glue(current_point, closest))
+        change_all_v1_to_v2(triangles[triangle].vertices[triangle_vertice], triangles[closest_triangle].vertices[closest_vertice]);    
     }
   }
   else if(current_triangle!=-1){
