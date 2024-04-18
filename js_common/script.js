@@ -300,7 +300,8 @@ canvas.addEventListener('mousemove', function(event) {
     if(closest!=-1) {
       let closest_triangle = closest[0];
       let closest_vertice  = closest[1];
-      if(can_glue(closest,current_point))
+      if(triangles[triangle].vertices[triangle_vertice].label==triangles[closest_triangle].vertices[closest_vertice].label ||
+        can_glue(closest,current_point))
         change_all_v1_to_v2(triangles[triangle].vertices[triangle_vertice], triangles[closest_triangle].vertices[closest_vertice]);    
     }
   } else if(current_triangle!=-1) {
