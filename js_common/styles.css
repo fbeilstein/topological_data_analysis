@@ -9,7 +9,8 @@ body{
 }
 
 #output{
-    padding-left: 70px;
+    padding-left: 50px;
+    padding-right: 50px;
     height: 600px;
     flex-grow: 1;
     overflow-y: scroll;

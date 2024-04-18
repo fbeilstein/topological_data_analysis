@@ -1,6 +1,8 @@
 let canvas = document.getElementById("canvas");
 let output = document.getElementById("output");
 let context = canvas.getContext("2d");
+let my_green = "rgb(144, 238, 144, 0.4)";
+let my_coral = "rgb(240, 128, 128, 0.9)";
 
 canvas.width  = 600;
 canvas.height = 600;
@@ -12,21 +14,20 @@ MathJax = {
 
 class Alphabet {
   constructor() {
-    let labels = 'ABCDFGHJKLMPRTUVWXYZabcdefghijklkmnopqrstuvwxyzαβγδϵζηθκλμνξπρστυϕχψωאבס'
-    this.alphabet = new Set();
-    for(let label of labels) 
-      this.alphabet.add(label)
+    let alphabet = 'ωψχϕυτσρπξνμλκθηζϵδγβαzyxwvutsrqponmklkjihgfedcbaΘΞΩΨΣΛZYXWVUTRPMLKJHGFDCBA';
+    this.labels = [];
+    for(let ch of alphabet)
+      this.labels.push(ch);
   }
   
   get_label() {
-    let label = this.alphabet.values().next().value;
-    this.alphabet.delete(label);
+    let label = this.labels.pop()
     console.log("symbol " + label + " allocated");
     return label;
   }
 
   return_label(label) {
-    this.alphabet.add(label);
+    this.labels.push(label);
     console.log("symbol " + label + " returned");
    }
 }
@@ -133,7 +134,7 @@ function draw_triangles() {
     for(let i=0; i<triangles.length; ++i) {
       let labels = [triangles[i].vertices[0].label,triangles[i].vertices[1].label,triangles[i].vertices[2].label].sort().join("");
       if(set[labels]==1)
-        context.fillStyle = 'lightgreen';
+        context.fillStyle = my_green;
       else
         context.fillStyle = 'LightPink';
       context.strokeStyle = "gray";
@@ -155,7 +156,7 @@ function draw_vertices() {
   for(let i=0; i<triangles.length; ++i) {
     for(let j=0; j<3; ++j) {
       context.beginPath();
-      context.fillStyle = triangles[i].vertices[j].picked ? 'red' : 'lightcoral';
+      context.fillStyle = triangles[i].vertices[j].picked ? 'red' : my_coral;
       context.arc(triangles[i].vertices[j].x, triangles[i].vertices[j].y, 5, 0, 2*Math.PI);   
       context.fill();
       context.closePath();
@@ -294,10 +295,6 @@ function split(v) {
 canvas.addEventListener('mousedown', function(event) {
   let x = event.offsetX;
   let y = event.offsetY;
-  if(event.shiftKey) { //add grid
-    add_grid(x,y);
-    return;
-  }
   current_point = get_closest_vertice(new Vertice(x,y));
   if(event.altKey) {
     if(current_point!=-1) {
@@ -358,6 +355,10 @@ canvas.addEventListener('mousemove', function(event) {
 canvas.addEventListener('dblclick', function(event) {
   let x = event.offsetX;
   let y = event.offsetY;
+  if(event.shiftKey) { //add grid
+    add_grid(x,y);
+    return;
+  }
   let picked = pick_triangle(new Vertice(x,y));
   if(picked!=-1){
     delete_triangle(picked);
@@ -472,7 +473,7 @@ function clear_column(m) {
 }
 
 function add_grid(x,y) {
-  let d = 90;
+  let d = 70;
   let n = 3;
   let m = 3;
   let vertices = [];
@@ -669,10 +670,18 @@ function function_b2(m, v, k) {
   let b2_matrix_text = get_mathjax_expression(m, v, k);
   let matrix_div = document.getElementById('b2_matrix');
   let btn = document.getElementById('BTN2');
-  matrix_div.innerHTML = b2_matrix_text;
-  MathJax.typesetClear([output]);
-  MathJax.typesetPromise([output]).then(() => {});
+  //matrix_div.innerHTML = b2_matrix_text;
+  ////MathJax.typesetClear([output]);
+  ////MathJax.typesetPromise([output]).then(() => {});
+
   if(matrix_div.style.display=="none") {
+    //***************** */
+    MathJax.typesetPromise().then(() => {
+      MathJax.typesetClear([matrix_div]);
+      matrix_div.innerHTML = b2_matrix_text;
+      MathJax.typesetPromise([matrix_div]);
+    }).catch((err) => console.log(err.message));
+    //*********************** */
     matrix_div.style.display = "block";
     btn.innerText = "▼";
   } else {
@@ -685,10 +694,17 @@ function function_b1(m, v, k) {
   let b1_matrix_text = get_mathjax_expression(m, v, k);
   let matrix_div = document.getElementById('b1_matrix');
   let btn = document.getElementById('BTN1');
-  matrix_div.innerHTML = b1_matrix_text;
-  MathJax.typesetClear([output]);
-  MathJax.typesetPromise([output]).then(() => {});
+  //matrix_div.innerHTML = b1_matrix_text;
+  ////MathJax.typesetClear([output]);
+  ////MathJax.typesetPromise([output]).then(() => {});
   if(matrix_div.style.display=="none") {
+  //***************** */
+  MathJax.typesetPromise().then(() => {
+    MathJax.typesetClear([matrix_div]);
+    matrix_div.innerHTML = b1_matrix_text;
+    MathJax.typesetPromise([matrix_div]);
+  }).catch((err) => console.log(err.message));
+  //*********************** */
     matrix_div.style.display = "block";
     btn.innerText = "▼";
   } else {
@@ -720,7 +736,9 @@ function recalculate_math() {
   } 
 
   output.style.color = "black";
-  out_string += "triangles  : \\("+tt.toString()+"\\)";  
+  out_string += "triangles  : ";  
+  for(let t of tt)
+    out_string += "\\(" + t + "\\), ";
   let complex_ = get_complex(tt);
   //out_string += "<br> complex  : \\(" + complex_.toString() + "\\)";
   let ch0 = get_chain_order(complex_, 0);
@@ -739,12 +757,16 @@ function recalculate_math() {
   out_string += "<br><br> &nbsp &nbsp &nbsp 0-boundary : dim = \\(" + b0.dim.toString() + "\\); rank = \\(" + b0.rank.toString() + "\\)";
   b1 = calculate_boundary(ch1);
   out_string += "<br><button id='BTN1' style='border:none; background-color: white; width:24px'> ▶ </button>";
-  out_string += "1-boundary : dim = \\(" + b1.dim.toString() + "\\); rank = \\(" + b1.rank.toString() + "\\); " + "Smith = \\(["+ b1.smith_invs.toString()+"]\\)";
-  out_string += "<div id='b1_matrix' style=\"display:none\"></div>";   
+  out_string += "1-boundary : dim = \\(" + b1.dim.toString() + "\\); rank = \\(" + b1.rank.toString() + "\\); Smith = [";
+  for(let s of b1.smith_invs)
+    out_string += "\\(" + s + "\\), ";
+  out_string += "]<div id='b1_matrix' style=\"display:none\"></div>";   
   b2 = calculate_boundary(ch2);
   out_string += "<br><button id='BTN2' style='border:none; background-color: white; width:24px'> ▶ </button>";
-  out_string += "2-boundary : dim = \\(" + b2.dim.toString() + "\\); rank = \\(" + b2.rank.toString() + "\\); " + "Smith = \\(["+ b2.smith_invs.toString()+"]\\)";
-  out_string += "<div id='b2_matrix' style=\"display:none\"></div>";
+  out_string += "2-boundary : dim = \\(" + b2.dim.toString() + "\\); rank = \\(" + b2.rank.toString() + "\\); Smith = [";
+  for(let s of b2.smith_invs)
+    out_string += "\\(" + s + "\\), ";
+  out_string += "]<div id='b2_matrix' style=\"display:none\"></div>";
   let conn_components = b1.dim - b1.rank - b0.rank;
   out_string += "<br><br>connected components: \\(" + conn_components.toString() + "\\)";
   let holes = b2.dim - b2.rank - b1.rank;
@@ -766,14 +788,23 @@ function recalculate_math() {
   out_string += "\\end{CD}\n"; 
   out_string += "$$\n";
 
+  //output.innerHTML = out_string;
+  //document.getElementById('BTN1').onclick = () => {function_b1(b1.m, b1.v, b1.k)};
+  //document.getElementById('BTN2').onclick = () => {function_b2(b2.m, b2.v, b2.k)}; 
+  
 
+  MathJax.typesetPromise().then(() => {
+    MathJax.typesetClear([output]);
+    output.innerHTML = out_string;  
+    document.getElementById('BTN1').onclick = () => {function_b1(b1.m, b1.v, b1.k)};
+    document.getElementById('BTN2').onclick = () => {function_b2(b2.m, b2.v, b2.k)}; 
+    MathJax.typesetPromise([output]);
+  }).catch((err) => console.log(err.message));
 
-  output.innerHTML = out_string;
-  MathJax.typesetClear([output]);
-  MathJax.typesetPromise([output]).then(() => {});
-
-  document.getElementById('BTN1').onclick = () => {function_b1(b1.m, b1.v, b1.k)};
-  document.getElementById('BTN2').onclick = () => {function_b2(b2.m, b2.v, b2.k)};
+  //output.innerHTML = out_string;
+  //MathJax.typesetClear([output]);
+  //await MathJax.typesetPromise([output]);//.then(() => {});
+  
 }
 
 update();
