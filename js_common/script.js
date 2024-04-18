@@ -668,7 +668,6 @@ function matrix_latex(m, v, k) {
 }
 
 function show_hide_latex(div_name, btn_name) {
-  console.log(div_name, btn_name);
   let out = document.getElementById(div_name);
   let btn = document.getElementById(btn_name);
 
@@ -691,7 +690,7 @@ function show_hide_latex(div_name, btn_name) {
 
 function hide_show_latex(latex_code, div_name, btn_name) {
   let out_str = "";
-  out_str += "<br><button style='border:none; background-color: white; width:24px' id=\"" + btn_name + "\"";
+  out_str += "<button style='border:none; background-color: white; width:24px' id=\"" + btn_name + "\"";
   out_str += "onclick='show_hide_latex(\"" + div_name + "\", \"" + btn_name + "\")' "; 
   out_str += div_name + ", " + btn_name;
   out_str += "> ▶ </button>\n";
@@ -706,6 +705,10 @@ function chain_latex(chain) {
   for(let ch of chain)
    latex += "\\(" + ch + "\\), ";
   return latex;
+}
+
+function array_latex(array) {
+  return "[" + chain_latex(array) + "]";
 }
 
 function recalculate_math() {
@@ -733,7 +736,7 @@ function recalculate_math() {
   const max_length = 15;
 
   output.style.color = "black";
-  out_string += "triangles  : ";  
+  out_string += "triangles :";  
   let tt_latex = chain_latex(tt);
   out_string += (tt.length > max_length) ? hide_show_latex(tt_latex, 'TT_div', 'TT_btn') : tt_latex;
   
@@ -758,19 +761,18 @@ function recalculate_math() {
   out_string += "<br><br> &nbsp &nbsp &nbsp 0-boundary : dim = \\(" + b0.dim.toString() + "\\); rank = \\(" + b0.rank.toString() + "\\)";
   b1 = calculate_boundary(ch1);
   let b1_matrix_latex = matrix_latex(b1.m, b1.v, b1.k);
-  out_string += hide_show_latex(b1_matrix_latex, 'BD1_div', 'BD1_btn'); 
-  out_string += "1-boundary : dim = \\(" + b1.dim.toString() + "\\); rank = \\(" + b1.rank.toString() + "\\); Smith = [";
-  for(let s of b1.smith_invs)
-    out_string += "\\(" + s + "\\), ";
-  out_string += "]<div id='b1_matrix' style=\"display:none\"></div>";   
+  out_string += "<br>" + hide_show_latex(b1_matrix_latex, 'BD1_div', 'BD1_btn'); 
+  out_string += "1-boundary : dim = \\(" + b1.dim.toString() + "\\); rank = \\(" + b1.rank.toString() + "\\); Smith = ";
+  let Smith1_latex = array_latex(b1.smith_invs);
+  out_string += (b1.smith_invs.length > max_length) ? hide_show_latex(Smith1_latex, 'SM1_div', 'SM1_btn') : Smith1_latex;
   b2 = calculate_boundary(ch2);
   let b2_matrix_latex = matrix_latex(b2.m, b2.v, b2.k);
-  out_string += hide_show_latex(b2_matrix_latex, 'BD2_div', 'BD2_btn'); 
+  out_string += "<br>" + hide_show_latex(b2_matrix_latex, 'BD2_div', 'BD2_btn'); 
 
-  out_string += "2-boundary : dim = \\(" + b2.dim.toString() + "\\); rank = \\(" + b2.rank.toString() + "\\); Smith = [";
-  for(let s of b2.smith_invs)
-    out_string += "\\(" + s + "\\), ";
-  out_string += "]<div id='b2_matrix' style=\"display:none\"></div>";
+  out_string += "2-boundary : dim = \\(" + b2.dim.toString() + "\\); rank = \\(" + b2.rank.toString() + "\\); Smith = ";
+  let Smith2_latex = array_latex(b2.smith_invs);
+  out_string += (b2.smith_invs.length > max_length) ? hide_show_latex(Smith2_latex, 'SM2_div', 'SM2_btn') : Smith2_latex;
+
   let conn_components = b1.dim - b1.rank - b0.rank;
   out_string += "<br><br>connected components: \\(" + conn_components.toString() + "\\)";
   let holes = b2.dim - b2.rank - b1.rank;
