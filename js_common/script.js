@@ -335,7 +335,7 @@ canvas.addEventListener('mousemove', function(event) {
     triangles[triangle].vertices[triangle_vertice].x = x; 
     triangles[triangle].vertices[triangle_vertice].y = y; 
     let closest = get_closest_vertice_except_self(triangles[triangle].vertices[triangle_vertice]);
-    if(closest!=-1) {
+    if(!event.shiftKey && closest!=-1) {
       let closest_triangle = closest[0];
       let closest_vertice  = closest[1];
       if(triangles[triangle].vertices[triangle_vertice].label==triangles[closest_triangle].vertices[closest_vertice].label ||
