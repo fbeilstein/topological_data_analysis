@@ -15,7 +15,7 @@ MathJax = {
 
 class Alphabet {
   constructor() {
-    let alphabet = 'ωψχϕυτσρπξνμλκθηζϵδγβαzyxwvutsrqponmklkjihgfedcbaΘΞΩΨΣΛZYXWVUTRPMLKJHGFDCBA';
+    let alphabet = 'אבגדהωψχϕυτσρπξνμλκθηζϵδγβαzyxwvutsrqponmklkjihgfedcbaΘΞΩΨΣΛZYXWVUTRPMLKJHGFDCBA';
     this.labels = [];
     for(let ch of alphabet)
       this.labels.push(ch);
@@ -132,7 +132,7 @@ function draw_triangles() {
 
     canvas.style.backgroundColor = "white";
     context.clearRect(0,0, canvas.width, canvas.height);
-    for(let i=0; i<triangles.length; ++i) {
+    for(let i=triangles.length-1; i>=0; --i) {
       let labels = [triangles[i].vertices[0].label,triangles[i].vertices[1].label,triangles[i].vertices[2].label].sort().join("");
       if(set[labels]==1)
         context.fillStyle = my_green;
@@ -695,7 +695,7 @@ function hide_show_latex(latex_code, div_name, btn_name) {
   out_str += div_name + ", " + btn_name;
   out_str += "> ▶ </button>\n";
   out_str += "<div id=\"" + div_name + "\" style='display:none' class='tex2jax_ignore'>\n"
-  out_str += latex_code;
+  out_str += "<br>" + latex_code;
   out_str += "\n</div>\n";
   return out_str;
 }
