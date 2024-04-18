@@ -9,7 +9,8 @@ canvas.height = 600;
 
 MathJax = {
   loader: {load: ['[tex]/amsCd']},
-  tex: {packages: {'[+]': ['amsCd']}}
+  tex: {packages: {'[+]': ['amsCd']}},
+  options: {ignoreHtmlClass: 'tex2jax_ignore'}
 };
 
 class Alphabet {
@@ -635,7 +636,7 @@ function check_triangles(tt)
      return [true, ];
 }
 
-function get_mathjax_expression(m, v, k) {
+function matrix_latex(m, v, k) {
   let out_string = "$$ \n";
   out_string += "\\begin{pmatrix}\n";
   for(let i=0; i<v.length; ++i) {
@@ -666,58 +667,52 @@ function get_mathjax_expression(m, v, k) {
   return out_string;
 }
 
-function function_b2(m, v, k) {
-  let b2_matrix_text = get_mathjax_expression(m, v, k);
-  let matrix_div = document.getElementById('b2_matrix');
-  let btn = document.getElementById('BTN2');
-  //matrix_div.innerHTML = b2_matrix_text;
-  ////MathJax.typesetClear([output]);
-  ////MathJax.typesetPromise([output]).then(() => {});
+function show_hide_latex(div_name, btn_name) {
+  console.log(div_name, btn_name);
+  let out = document.getElementById(div_name);
+  let btn = document.getElementById(btn_name);
 
-  if(matrix_div.style.display=="none") {
-    //***************** */
+  if(out.classList.contains('tex2jax_ignore')) {
+    out.classList.remove("tex2jax_ignore");
     MathJax.typesetPromise().then(() => {
-      MathJax.typesetClear([matrix_div]);
-      matrix_div.innerHTML = b2_matrix_text;
-      MathJax.typesetPromise([matrix_div]);
+      MathJax.typesetClear([out]);
+      MathJax.typesetPromise([out]);
     }).catch((err) => console.log(err.message));
-    //*********************** */
-    matrix_div.style.display = "block";
+  }
+
+  if(out.style.display=="none") {
+    out.style.display = "block";
     btn.innerText = "▼";
   } else {
-    matrix_div.style.display = "none";
+    out.style.display = "none";
     btn.innerText = "▶";
   }
 }
 
-function function_b1(m, v, k) {
-  let b1_matrix_text = get_mathjax_expression(m, v, k);
-  let matrix_div = document.getElementById('b1_matrix');
-  let btn = document.getElementById('BTN1');
-  //matrix_div.innerHTML = b1_matrix_text;
-  ////MathJax.typesetClear([output]);
-  ////MathJax.typesetPromise([output]).then(() => {});
-  if(matrix_div.style.display=="none") {
-  //***************** */
-  MathJax.typesetPromise().then(() => {
-    MathJax.typesetClear([matrix_div]);
-    matrix_div.innerHTML = b1_matrix_text;
-    MathJax.typesetPromise([matrix_div]);
-  }).catch((err) => console.log(err.message));
-  //*********************** */
-    matrix_div.style.display = "block";
-    btn.innerText = "▼";
-  } else {
-    matrix_div.style.display = "none";
-    btn.innerText = "▶";
-  }
+function hide_show_latex(latex_code, div_name, btn_name) {
+  let out_str = "";
+  out_str += "<br><button style='border:none; background-color: white; width:24px' id=\"" + btn_name + "\"";
+  out_str += "onclick='show_hide_latex(\"" + div_name + "\", \"" + btn_name + "\")' "; 
+  out_str += div_name + ", " + btn_name;
+  out_str += "> ▶ </button>\n";
+  out_str += "<div id=\"" + div_name + "\" style='display:none' class='tex2jax_ignore'>\n"
+  out_str += latex_code;
+  out_str += "\n</div>\n";
+  return out_str;
+}
+
+function chain_latex(chain) {
+  let latex = "";
+  for(let ch of chain)
+   latex += "\\(" + ch + "\\), ";
+  return latex;
 }
 
 function recalculate_math() {
   let out_triangles = [];
   for(let i=0; i<triangles.length; ++i)
     out_triangles.push(triangles[i].vertices[0].label+triangles[i].vertices[1].label+triangles[i].vertices[2].label);
-  out_string = "";
+  let out_string = "";
   let b1 = undefined;
   let b2 = undefined;
   let tt = set_triangles(out_triangles);
@@ -735,34 +730,43 @@ function recalculate_math() {
     return;
   } 
 
+  const max_length = 15;
+
   output.style.color = "black";
   out_string += "triangles  : ";  
-  for(let t of tt)
-    out_string += "\\(" + t + "\\), ";
+  let tt_latex = chain_latex(tt);
+  out_string += (tt.length > max_length) ? hide_show_latex(tt_latex, 'TT_div', 'TT_btn') : tt_latex;
+  
   let complex_ = get_complex(tt);
-  //out_string += "<br> complex  : \\(" + complex_.toString() + "\\)";
   let ch0 = get_chain_order(complex_, 0);
   out_string += "<br><br>0-chain   : ";
-  for(let ch of ch0)
-    out_string += "\\(" + ch + "\\), ";
+  let ch0_latex = chain_latex(ch0);
+  out_string += (ch0.length > max_length) ? hide_show_latex(ch0_latex, 'CH0_div', 'CH0_btn') : ch0_latex;
+
   let ch1 = get_chain_order(complex_, 1);
   out_string += "<br> 1-chain   : ";
-  for(let ch of ch1)
-    out_string += "\\(" + ch + "\\), ";
+  let ch1_latex = chain_latex(ch1);
+  out_string += (ch1.length > max_length) ? hide_show_latex(ch1_latex, 'CH1_div', 'CH1_btn') : ch1_latex;
+
   let ch2 = get_chain_order(complex_, 2);
   out_string += "<br> 2-chain  : ";
-  for(let ch of ch2)
-    out_string += "\\(" + ch + "\\), ";
+  let ch2_latex = chain_latex(ch2);
+  out_string += (ch2.length > max_length) ? hide_show_latex(ch2_latex, 'CH2_div', 'CH2_btn') : ch2_latex;
+
+
   let b0 = calculate_boundary(ch0);
   out_string += "<br><br> &nbsp &nbsp &nbsp 0-boundary : dim = \\(" + b0.dim.toString() + "\\); rank = \\(" + b0.rank.toString() + "\\)";
   b1 = calculate_boundary(ch1);
-  out_string += "<br><button id='BTN1' style='border:none; background-color: white; width:24px'> ▶ </button>";
+  let b1_matrix_latex = matrix_latex(b1.m, b1.v, b1.k);
+  out_string += hide_show_latex(b1_matrix_latex, 'BD1_div', 'BD1_btn'); 
   out_string += "1-boundary : dim = \\(" + b1.dim.toString() + "\\); rank = \\(" + b1.rank.toString() + "\\); Smith = [";
   for(let s of b1.smith_invs)
     out_string += "\\(" + s + "\\), ";
   out_string += "]<div id='b1_matrix' style=\"display:none\"></div>";   
   b2 = calculate_boundary(ch2);
-  out_string += "<br><button id='BTN2' style='border:none; background-color: white; width:24px'> ▶ </button>";
+  let b2_matrix_latex = matrix_latex(b2.m, b2.v, b2.k);
+  out_string += hide_show_latex(b2_matrix_latex, 'BD2_div', 'BD2_btn'); 
+
   out_string += "2-boundary : dim = \\(" + b2.dim.toString() + "\\); rank = \\(" + b2.rank.toString() + "\\); Smith = [";
   for(let s of b2.smith_invs)
     out_string += "\\(" + s + "\\), ";
@@ -780,7 +784,6 @@ function recalculate_math() {
   out_string += "\\)";  
   out_string += "<br> \\( H_2(K) = \\text{Ker}(\\partial_2) / \\text{Im}(\\partial_3) \\cong \\mathbb{Z}^{" + voids.toString() + "}\\)"; 
 
-
   out_string += "<br>\n";
   out_string += "$$\n";
   out_string += "\\begin{CD}\n";
@@ -788,23 +791,11 @@ function recalculate_math() {
   out_string += "\\end{CD}\n"; 
   out_string += "$$\n";
 
-  //output.innerHTML = out_string;
-  //document.getElementById('BTN1').onclick = () => {function_b1(b1.m, b1.v, b1.k)};
-  //document.getElementById('BTN2').onclick = () => {function_b2(b2.m, b2.v, b2.k)}; 
-  
-
   MathJax.typesetPromise().then(() => {
     MathJax.typesetClear([output]);
     output.innerHTML = out_string;  
-    document.getElementById('BTN1').onclick = () => {function_b1(b1.m, b1.v, b1.k)};
-    document.getElementById('BTN2').onclick = () => {function_b2(b2.m, b2.v, b2.k)}; 
     MathJax.typesetPromise([output]);
-  }).catch((err) => console.log(err.message));
-
-  //output.innerHTML = out_string;
-  //MathJax.typesetClear([output]);
-  //await MathJax.typesetPromise([output]);//.then(() => {});
-  
+  }).catch((err) => console.log(err.message)); 
 }
 
 update();
