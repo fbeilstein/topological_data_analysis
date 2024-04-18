@@ -162,7 +162,7 @@ function draw_vertices() {
 function draw_labels() { 
   let labels = new Set();
   context.fillStyle = 'black';
-  context.font = "15px Verdana  ";
+  context.font = "italic 15px Verdana";
   for(let i=0; i<triangles.length; ++i) {
     for(let j=0; j<3; ++j) {
       if(!labels.has(triangles[i].vertices[j])) {
