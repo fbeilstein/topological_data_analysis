@@ -12,13 +12,14 @@ body{
     padding-left: 50px;
     padding-right: 50px;
     padding-top: 20px;
-    height: 581px;
+    height: 580px;
     flex-grow: 1;
     overflow-y: scroll;
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
-    border-bottom: 1px solid grey;
+    border-top: 1px solid white;
+    border-bottom: 1px solid lightgrey;
 }
 
 #info{
