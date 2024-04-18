@@ -9,20 +9,20 @@ class Alphabet {
   constructor() {
     let labels = 'ABCDFGHJKLMPRTUVWXYZabcdefghijklkmnopqrstuvwxyzαβγδϵζηθκλμνξπρστυϕχψωאבס'
     this.alphabet = new Set();
-    for(let label of labels){
+    for(let label of labels) 
       this.alphabet.add(label)
-    }
   }
+  
   get_label() {
     let label = this.alphabet.values().next().value;
     this.alphabet.delete(label);
-    console.log("symbol " + label +" allocated");
+    console.log("symbol " + label + " allocated");
     return label;
   }
 
   return_label(label) {
     this.alphabet.add(label);
-    console.log("symbol " + label +" returned");
+    console.log("symbol " + label + " returned");
    }
 }
 
@@ -143,8 +143,7 @@ function draw_triangles() {
       context.fill();
       context.stroke();
       context.closePath();
-    }
-    
+    }   
 }
 
 function draw_vertices() {
