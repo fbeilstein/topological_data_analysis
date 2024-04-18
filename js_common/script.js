@@ -758,7 +758,7 @@ function recalculate_math() {
 
 
   let b0 = calculate_boundary(ch0);
-  out_string += "<br><br> &nbsp &nbsp &nbsp 0-boundary : dim = \\(" + b0.dim.toString() + "\\); rank = \\(" + b0.rank.toString() + "\\)";
+  out_string += "<br><br> <span style='display:inline-block; width:24px'></span> 0-boundary : dim = \\(" + b0.dim.toString() + "\\); rank = \\(" + b0.rank.toString() + "\\)";
   b1 = calculate_boundary(ch1);
   let b1_matrix_latex = matrix_latex(b1.m, b1.v, b1.k);
   out_string += "<br>" + hide_show_latex(b1_matrix_latex, 'BD1_div', 'BD1_btn'); 
