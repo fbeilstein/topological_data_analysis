@@ -758,18 +758,18 @@ function recalculate_math() {
 
 
   let b0 = calculate_boundary(ch0);
-  out_string += "<br><br> <span style='display:inline-block; width:24px'></span> 0-boundary : dim = \\(" + b0.dim.toString() + "\\); rank = \\(" + b0.rank.toString() + "\\)";
+  out_string += "<br><br> <span style='display:inline-block; width:24px'></span> 0-boundary : \\( \\text{dim} = " + b0.dim.toString() + "\\); \\( \\text{rank} = " + b0.rank.toString() + "\\)";
   b1 = calculate_boundary(ch1);
   let b1_matrix_latex = matrix_latex(b1.m, b1.v, b1.k);
   out_string += "<br>" + hide_show_latex(b1_matrix_latex, 'BD1_div', 'BD1_btn'); 
-  out_string += "1-boundary : dim = \\(" + b1.dim.toString() + "\\); rank = \\(" + b1.rank.toString() + "\\); Smith = ";
+  out_string += "1-boundary : \\( \\text{dim} = " + b1.dim.toString() + "\\); \\( \\text{rank} = " + b1.rank.toString() + "\\); \\(\\text{Smith} = \\)";
   let Smith1_latex = array_latex(b1.smith_invs);
   out_string += (b1.smith_invs.length > max_length) ? hide_show_latex(Smith1_latex, 'SM1_div', 'SM1_btn') : Smith1_latex;
   b2 = calculate_boundary(ch2);
   let b2_matrix_latex = matrix_latex(b2.m, b2.v, b2.k);
   out_string += "<br>" + hide_show_latex(b2_matrix_latex, 'BD2_div', 'BD2_btn'); 
 
-  out_string += "2-boundary : dim = \\(" + b2.dim.toString() + "\\); rank = \\(" + b2.rank.toString() + "\\); Smith = ";
+  out_string += "2-boundary : \\( \\text{dim} = " + b2.dim.toString() + "\\); \\( \\text{rank} = " + b2.rank.toString() + "\\); \\(\\text{Smith} = \\)";
   let Smith2_latex = array_latex(b2.smith_invs);
   out_string += (b2.smith_invs.length > max_length) ? hide_show_latex(Smith2_latex, 'SM2_div', 'SM2_btn') : Smith2_latex;
 

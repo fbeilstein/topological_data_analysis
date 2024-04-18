@@ -11,15 +11,18 @@ body{
 #output{
     padding-left: 50px;
     padding-right: 50px;
-    height: 600px;
+    padding-top: 20px;
+    height: 581px;
     flex-grow: 1;
     overflow-y: scroll;
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
+    border-bottom: 1px solid grey;
 }
 
 #info{
+    width : 600px;
     padding-top: 20px;
     padding-left: 20px;
     font-family: arial;
