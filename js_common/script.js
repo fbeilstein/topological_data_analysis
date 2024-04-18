@@ -5,6 +5,11 @@ let context = canvas.getContext("2d");
 canvas.width  = 600;
 canvas.height = 600;
 
+MathJax = {
+  loader: {load: ['[tex]/amsCd']},
+  tex: {packages: {'[+]': ['amsCd']}}
+};
+
 class Alphabet {
   constructor() {
     let labels = 'ABCDFGHJKLMPRTUVWXYZabcdefghijklkmnopqrstuvwxyzαβγδϵζηθκλμνξπρστυϕχψωאבס'
@@ -172,6 +177,25 @@ function draw_labels() {
   }
 }
 
+function get_median(triangle) {
+  let x = 0;
+  let y = 0;
+  for(let i=0; i<3; ++i) {
+    x += triangle.vertices[i].x;
+    y += triangle.vertices[i].y;
+  }
+  return [x/3,y/3];
+}
+
+function get_direction(x,y) {
+  console.log([x, y]);
+  let dx = x[0]-y[0];
+  let dy = x[1]-y[1];
+
+  let d = Math.sqrt(dx*dx+dy*dy);
+  return [dx/d, dy/d];
+}
+
 function update() {
   draw_triangles();
   draw_vertices();
@@ -237,17 +261,34 @@ document.addEventListener('keyup', function(event) {
   glue_condidate_1 = -1;
 });
 
+
+const R = 20;
 function split(v) {
   let vertice = triangles[v[0]].vertices[v[1]]; 
   let label = triangles[v[0]].vertices[v[1]].label;
+  let new_vertices = new Set();
+  let n_new = 0;
   for(let i=0; i<triangles.length; ++i){
     for(let j=0; j<3; ++j){
       if(triangles[i].vertices[j]===vertice){
         triangles[i].vertices[j] = new Vertice(triangles[i].vertices[j].x, triangles[i].vertices[j].y, label_allocator.get_label()); 
+        new_vertices.add(triangles[i].vertices[j]);
+        n_new += 1;
       }
     }
   }
   return_label_if_poss(label);
+  if(n_new>1) {
+    for(let i=0; i<triangles.length; ++i){
+      for(let j=0; j<3; ++j){
+        if(new_vertices.has(triangles[i].vertices[j])) {
+          let dir = get_direction([triangles[i].vertices[j].x, triangles[i].vertices[j].y], get_median(triangles[i]));
+          triangles[i].vertices[j].x -= parseInt(R*dir[0]);
+          triangles[i].vertices[j].y -= parseInt(R*dir[1]);
+        }
+      }
+    }
+  }
 }
 
 canvas.addEventListener('mousedown', function(event) {
@@ -683,11 +724,17 @@ function recalculate_math() {
   let complex_ = get_complex(tt);
   //out_string += "<br> complex  : \\(" + complex_.toString() + "\\)";
   let ch0 = get_chain_order(complex_, 0);
-  out_string += "<br><br>0-chain   : \\(" + ch0.toString() + "\\)";
+  out_string += "<br><br>0-chain   : ";
+  for(let ch of ch0)
+    out_string += "\\(" + ch + "\\), ";
   let ch1 = get_chain_order(complex_, 1);
-  out_string += "<br> 1-chain   : \\(" + ch1.toString() + "\\)";
+  out_string += "<br> 1-chain   : ";
+  for(let ch of ch1)
+    out_string += "\\(" + ch + "\\), ";
   let ch2 = get_chain_order(complex_, 2);
-  out_string += "<br> 2-chain  : \\(" + ch2.toString() + "\\)";
+  out_string += "<br> 2-chain  : ";
+  for(let ch of ch2)
+    out_string += "\\(" + ch + "\\), ";
   let b0 = calculate_boundary(ch0);
   out_string += "<br><br> &nbsp &nbsp &nbsp 0-boundary : dim = \\(" + b0.dim.toString() + "\\); rank = \\(" + b0.rank.toString() + "\\)";
   b1 = calculate_boundary(ch1);
@@ -704,12 +751,23 @@ function recalculate_math() {
   out_string += "<br>holes : \\(" + holes.toString() + "\\)";
   let voids = out_triangles.length - b2.rank;
   out_string += "<br>voids :  \\(" + voids.toString()+"\\)";
-  out_string += "<br><br> \\( H_0(K) \\cong \\mathbb{Z}^{" + conn_components.toString() + "}\\)"; 
-  out_string += "<br> \\( H_1(K) \\cong \\mathbb{Z}^{" + holes.toString() + "}"; 
+  out_string += "<br><br> \\( H_0(K) = \\text{Ker}(\\partial_0) / \\text{Im}(\\partial_1) \\cong \\mathbb{Z}^{" + conn_components.toString() + "}\\)"; 
+  out_string += "<br> \\( H_1(K) = \\text{Ker}(\\partial_1) / \\text{Im}(\\partial_2) \\cong \\mathbb{Z}^{" + holes.toString() + "}"; 
   for (let t of b2.torsion)
     out_string += "\\oplus \\mathbb{Z}_{" + Math.abs(t).toString() + "}";
   out_string += "\\)";  
-  out_string += "<br> \\( H_2(K) \\cong \\mathbb{Z}^{" + voids.toString() + "}\\)"; 
+  out_string += "<br> \\( H_2(K) = \\text{Ker}(\\partial_2) / \\text{Im}(\\partial_3) \\cong \\mathbb{Z}^{" + voids.toString() + "}\\)"; 
+
+
+  out_string += "<br>\n";
+  out_string += "$$\n";
+  out_string += "\\begin{CD}\n";
+  out_string += "\\emptyset @>\\partial_{3}>> C_2 @>\\partial_{2}>> C_{1} @>\\partial_{1}>> C_0 @>\\partial_0>> 0\n";
+  out_string += "\\end{CD}\n"; 
+  out_string += "$$\n";
+
+
+
   output.innerHTML = out_string;
   MathJax.typesetClear([output]);
   MathJax.typesetPromise([output]).then(() => {});
