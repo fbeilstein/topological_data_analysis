@@ -55,3 +55,7 @@ body{
     flex-direction: row;
 }
 
+#infos {
+    display : flex;
+    flex-direction: row;
+}
