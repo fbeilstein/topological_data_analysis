@@ -3,6 +3,7 @@ let output = document.getElementById("output");
 let context = canvas.getContext("2d");
 let my_green = "rgb(144, 238, 144, 0.4)";
 let my_coral = "rgb(240, 128, 128, 0.9)";
+let my_grey = "rgb(211, 211, 211, 0.4)";
 let show_labels = true;
 let show_negative = false;
 let show_connections = false;
@@ -141,7 +142,7 @@ function draw_triangles() {
       if(show_negative){
         context.strokeStyle = "white";
       } 
-      context.fillStyle = (set[labels]==1) ? (show_negative ? "lightgrey" : my_green) : 'LightPink'; 
+      context.fillStyle = (set[labels]==1) ? (show_negative ? my_grey : my_green) : 'LightPink'; 
       context.lineWidth = 1;
       context.beginPath();
       context.moveTo(triangles[i].vertices[0].x, triangles[i].vertices[0].y);
