@@ -204,6 +204,18 @@ function get_direction(x,y) {
   return [dx/d, dy/d];
 }
 
+function translate_triangles(dx,dy) {
+  let set = new Set();
+  for(let i=0; i<triangles.length; ++i)
+    for(let j=0; j<3; ++j) {
+      set.add(triangles[i].vertices[j]);
+    }
+  for(let v of set) {
+    v.x += dx;
+    v.y += dy;
+  } 
+}
+
 function interpolate_viridis_color(value) {
   // Define the Viridis colorscale as an array of RGB values
    const viridisColors = [
@@ -422,6 +434,10 @@ canvas.addEventListener('mouseup', function(event) {
 });
 
 canvas.addEventListener('mousemove', function(event) {
+  if(event.buttons==4) {
+    translate_triangles(event.movementX, event.movementY);
+    return 
+  }
   if(current_point!=-1) {
     let x = event.offsetX;
     let y = event.offsetY;
@@ -482,7 +498,77 @@ function get_complex(tt) {
 function get_chain_order(complex, order) {
    return complex.filter((c) => c.length == order+1);
 }
-   
+
+function add_grid(x,y) {
+  let d = 70;
+  let n = 3;
+  let m = 3;
+  let vertices = [];
+  for(let i=0; i<=m; ++i) {
+    let row = [];
+    for(let j=0; j<=n; ++j) {
+      row.push(new Vertice(x+d*i, y+d*j, label_allocator.get_label())); 
+    }
+    vertices.push(row);
+  }
+  for(let i=0; i<m; ++i) {
+    for(let j=0; j<n; ++j) {
+      add_triangle_v(vertices[i][j],vertices[i+1][j],vertices[i+1][j+1]);
+      add_triangle_v(vertices[i][j],vertices[i][j+1],vertices[i+1][j+1]);
+    }
+  }
+}
+
+function calculate_boundary(tt){
+  let n = tt.length;
+  let matrix = new Object();
+  let k = [];
+  for(let i=0; i<n; ++i) {
+      k.push(tt[i].toString())
+      for(let j=0; j<tt[i].length; ++j){
+          let x = tt[i].slice(0,j).concat(tt[i].slice(j+1));
+          if (x=='') continue;
+          if(!matrix.hasOwnProperty(x)){
+              matrix[x] = (Array(n)).fill(0);
+          }
+          matrix[x][i] += ((j%2)==0 ? 1 : -1);
+      }
+  }
+
+  let m = [];
+  let v = [];  
+  let new_m = [];
+  for (let key in matrix) {
+      m.push([...matrix[key]]);
+      new_m.push([...matrix[key]]);
+      v.push(key);
+  }
+  let m_dim = m.length;
+  let smith = invariant_factors(new_m);
+  let rank  = 0;
+  let torsion = [];
+  for (let f of smith) {
+    if(f!=0) {
+      rank++;
+      if(Math.abs(f)!=1) torsion.push(f);
+    } 
+  }
+  return {"dim" : m_dim, "rank" : rank, "smith_invs" : smith, "torsion" : torsion, "m" : m, "v" : v, "k" : k};
+}
+
+function check_triangles(tt)
+{
+  let set = new Set();
+  for(let t of tt)
+  {
+    if(set.has(t))
+      return [false, t];
+    else
+      set.add(t);   
+  }
+     return [true, ];
+}
+
 function z_div(a, b) {
   let remainder = a % b;
   let aIsInfinite = a === -Infinity || a === Infinity;
@@ -567,25 +653,7 @@ function clear_column(m) {
   return m;
 }
 
-function add_grid(x,y) {
-  let d = 70;
-  let n = 3;
-  let m = 3;
-  let vertices = [];
-  for(let i=0; i<=m; ++i) {
-    let row = [];
-    for(let j=0; j<=n; ++j) {
-      row.push(new Vertice(x+d*i, y+d*j, label_allocator.get_label())); 
-    }
-    vertices.push(row);
-  }
-  for(let i=0; i<m; ++i) {
-    for(let j=0; j<n; ++j) {
-      add_triangle_v(vertices[i][j],vertices[i+1][j],vertices[i+1][j+1]);
-      add_triangle_v(vertices[i][j],vertices[i][j+1],vertices[i+1][j+1]);
-    }
-  }
-}
+
 
 function clear_row(m) {
   if (m[0][0] == 0) return m;
@@ -678,56 +746,6 @@ function invariant_factors(m) {
     result = invs;
   }
   return result;
-}
-
-function calculate_boundary(tt){
-  let n = tt.length;
-  let matrix = new Object();
-  let k = [];
-  for(let i=0; i<n; ++i) {
-      k.push(tt[i].toString())
-      for(let j=0; j<tt[i].length; ++j){
-          let x = tt[i].slice(0,j).concat(tt[i].slice(j+1));
-          if (x=='') continue;
-          if(!matrix.hasOwnProperty(x)){
-              matrix[x] = (Array(n)).fill(0);
-          }
-          matrix[x][i] += ((j%2)==0 ? 1 : -1);
-      }
-  }
-
-  let m = [];
-  let v = [];  
-  let new_m = [];
-  for (let key in matrix) {
-      m.push([...matrix[key]]);
-      new_m.push([...matrix[key]]);
-      v.push(key);
-  }
-  let m_dim = m.length;
-  let smith = invariant_factors(new_m);
-  let rank  = 0;
-  let torsion = [];
-  for (let f of smith) {
-    if(f!=0) {
-      rank++;
-      if(Math.abs(f)!=1) torsion.push(f);
-    } 
-  }
-  return {"dim" : m_dim, "rank" : rank, "smith_invs" : smith, "torsion" : torsion, "m" : m, "v" : v, "k" : k};
-}
-
-function check_triangles(tt)
-{
-  let set = new Set();
-  for(let t of tt)
-  {
-    if(set.has(t))
-      return [false, t];
-    else
-      set.add(t);   
-  }
-     return [true, ];
 }
 
 function matrix_latex(m, v, k) {

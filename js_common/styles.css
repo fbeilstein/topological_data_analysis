@@ -45,6 +45,16 @@ body{
     user-select: none; /* Standard syntax */
 }
 
+#href{
+    text-decoration: none;
+    color : lightgray;
+}
+
+#href:hover{
+    color : blue;
+    text-decoration: underline;
+}
+
 #info:hover{
     color : gray;
 }
