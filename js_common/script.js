@@ -101,7 +101,7 @@ function add_triangle(x,y) {
 
 function add_triangle_v(v1, v2, v3) {
   triangles.push(new Triangle(v1,v2,v3));
-  recalculate_math();
+  //recalculate_math();
 }
 
 function pick_triangle(vertice) {
@@ -517,6 +517,7 @@ function add_grid(x,y) {
       add_triangle_v(vertices[i][j],vertices[i][j+1],vertices[i+1][j+1]);
     }
   }
+  recalculate_math();
 }
 
 function calculate_boundary(tt){
