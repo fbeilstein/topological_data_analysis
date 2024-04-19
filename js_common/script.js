@@ -140,12 +140,8 @@ function draw_triangles() {
       context.strokeStyle = "gray";
       if(show_negative){
         context.strokeStyle = "white";
-        context.fillStyle = "lightgrey";
-      } else if(set[labels]==1)
-          context.fillStyle = my_green;
-        else
-          context.fillStyle = 'LightPink';
-      
+      } 
+      context.fillStyle = (set[labels]==1) ? (show_negative ? "lightgrey" : my_green) : 'LightPink'; 
       context.lineWidth = 1;
       context.beginPath();
       context.moveTo(triangles[i].vertices[0].x, triangles[i].vertices[0].y);
@@ -165,7 +161,7 @@ function draw_vertices() {
     for(let j=0; j<3; ++j) {
       context.beginPath();
       if(show_negative)
-        context.fillStyle = 'black';
+        context.fillStyle = 'gray';
       else
         context.fillStyle = triangles[i].vertices[j].picked ? 'red' : my_coral;
       context.arc(triangles[i].vertices[j].x, triangles[i].vertices[j].y, 5, 0, 2*Math.PI);   
@@ -245,7 +241,10 @@ function draw_connections() {
     for(let j=0; j<3; ++j) {
       let vertex = triangles[i].vertices[j];
       if(l.hasOwnProperty(vertex.label)){
-        if(!([vertex.x, vertex.y] in l[vertex.label]))
+        let found = false;
+        for(let k=0; k<l[vertex.label].length; ++k)
+          found |= ((l[vertex.label][k][0]==vertex.x) && (l[vertex.label][k][1]==vertex.y));
+        if(!found)
           l[vertex.label].push([vertex.x, vertex.y]);
       }
       else
@@ -254,7 +253,8 @@ function draw_connections() {
   }
   let color = 0.0;
   for (const [key, value] of Object.entries(l)) {   
-    {  
+    if(value.length>1)
+    {    
       color += 0.05;
       for(let i=0; i<value.length; ++i) {
         context.fillStyle = context.strokeStyle = interpolate_viridis_color(color%1.0);
@@ -268,8 +268,7 @@ function draw_connections() {
           context.moveTo(value[i][0], value[i][1]);
           context.lineTo(value[j][0], value[j][1]);
           context.stroke();
-          context.closePath();
-          
+          context.closePath();          
           context.beginPath();
           context.arc(value[j][0], value[j][1], 5, 0, 2*Math.PI);   
           context.closePath();
