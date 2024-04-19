@@ -3,6 +3,9 @@ let output = document.getElementById("output");
 let context = canvas.getContext("2d");
 let my_green = "rgb(144, 238, 144, 0.4)";
 let my_coral = "rgb(240, 128, 128, 0.9)";
+let show_labels = true;
+let show_negative = false;
+let show_connections = false;
 
 canvas.width  = 600;
 canvas.height = 600;
@@ -15,7 +18,7 @@ MathJax = {
 
 class Alphabet {
   constructor() {
-    let alphabet = 'אבגדהωψχϕυτσρπξνμλκθηζϵδγβαzyxwvutsrqponmklkjihgfedcbaΘΞΩΨΣΛZYXWVUTRPMLKJHGFDCBA';
+    let alphabet = 'אבגדהωψχϕυτσρπξνμλκθηζϵδγβαzyxwvutsrqponmkljihgfedcbaΘΞΩΨΣΛZYXWVUTRPMLKJHGFDCBA';
     this.labels = [];
     for(let ch of alphabet)
       this.labels.push(ch);
@@ -134,11 +137,15 @@ function draw_triangles() {
     context.clearRect(0,0, canvas.width, canvas.height);
     for(let i=triangles.length-1; i>=0; --i) {
       let labels = [triangles[i].vertices[0].label,triangles[i].vertices[1].label,triangles[i].vertices[2].label].sort().join("");
-      if(set[labels]==1)
-        context.fillStyle = my_green;
-      else
-        context.fillStyle = 'LightPink';
       context.strokeStyle = "gray";
+      if(show_negative){
+        context.strokeStyle = "white";
+        context.fillStyle = "lightgrey";
+      } else if(set[labels]==1)
+          context.fillStyle = my_green;
+        else
+          context.fillStyle = 'LightPink';
+      
       context.lineWidth = 1;
       context.beginPath();
       context.moveTo(triangles[i].vertices[0].x, triangles[i].vertices[0].y);
@@ -157,7 +164,10 @@ function draw_vertices() {
   for(let i=0; i<triangles.length; ++i) {
     for(let j=0; j<3; ++j) {
       context.beginPath();
-      context.fillStyle = triangles[i].vertices[j].picked ? 'red' : my_coral;
+      if(show_negative)
+        context.fillStyle = 'black';
+      else
+        context.fillStyle = triangles[i].vertices[j].picked ? 'red' : my_coral;
       context.arc(triangles[i].vertices[j].x, triangles[i].vertices[j].y, 5, 0, 2*Math.PI);   
       context.fill();
       context.closePath();
@@ -198,10 +208,86 @@ function get_direction(x,y) {
   return [dx/d, dy/d];
 }
 
+function interpolate_viridis_color(value) {
+  // Define the Viridis colorscale as an array of RGB values
+   const viridisColors = [
+      [255, 0, 0],
+      [255, 165, 0],
+      [255, 255, 0],
+      [52, 94, 141],
+      [0, 128, 0],
+      [0, 0, 255],
+      [34, 167, 132],
+      [75, 0, 130],
+      [238, 130, 238],
+  ];
+  if (value === 1) {
+    return `rgb(${viridisColors[viridisColors.length - 1].join(',')})`;
+  }
+  // Calculate the index in the colorscale array based on the value
+  const index = Math.floor(value * (viridisColors.length - 1));
+
+  // Interpolate between two neighboring colors based on the index
+  const color1 = viridisColors[index];
+  const color2 = viridisColors[index + 1];
+  const t = (value - (index / (viridisColors.length - 1))) * (viridisColors.length - 1);
+
+  // Interpolate the RGB components
+  const interpolatedColor = color1.map((c, i) => Math.round(c + t * (color2[i] - c)));
+
+  // Return the RGB color as a string
+  return `rgb(${interpolatedColor.join(',')})`;
+}
+
+function draw_connections() {
+  let l = {};
+  for(let i=0; i<triangles.length; ++i) {
+    for(let j=0; j<3; ++j) {
+      let vertex = triangles[i].vertices[j];
+      if(l.hasOwnProperty(vertex.label)){
+        if(!([vertex.x, vertex.y] in l[vertex.label]))
+          l[vertex.label].push([vertex.x, vertex.y]);
+      }
+      else
+        l[vertex.label] = [[vertex.x, vertex.y]];
+    }
+  }
+  let color = 0.0;
+  for (const [key, value] of Object.entries(l)) {   
+    {  
+      color += 0.05;
+      for(let i=0; i<value.length; ++i) {
+        context.fillStyle = context.strokeStyle = interpolate_viridis_color(color%1.0);
+        context.lineWidth = 1;
+        context.beginPath();
+        context.arc(value[i][0], value[i][1], 5, 0, 2*Math.PI);   
+        context.closePath();
+        context.fill();
+        for(let j=i+1; j<value.length; ++j) {
+          context.beginPath();
+          context.moveTo(value[i][0], value[i][1]);
+          context.lineTo(value[j][0], value[j][1]);
+          context.stroke();
+          context.closePath();
+          
+          context.beginPath();
+          context.arc(value[j][0], value[j][1], 5, 0, 2*Math.PI);   
+          context.closePath();
+          context.fill();
+        }  
+      }
+    }
+  }
+}
+
 function update() {
   draw_triangles();
-  draw_vertices();
-  draw_labels();
+  if(show_labels) {
+    draw_vertices();
+    draw_labels();
+  }
+  if(show_connections) 
+    draw_connections();
   requestAnimationFrame(update);
 }
 
@@ -292,6 +378,15 @@ function split(v) {
     }
   }
 }
+
+document.addEventListener('keydown', function (event) {
+  if(event.keyCode==49)
+    show_labels = !(show_labels);
+  if(event.keyCode==50)
+    show_negative = !(show_negative);
+  if(event.keyCode==51)
+    show_connections = !(show_connections);
+});
 
 canvas.addEventListener('mousedown', function(event) {
   let x = event.offsetX;
