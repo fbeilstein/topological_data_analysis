@@ -7,8 +7,8 @@ let show_labels = true;
 let show_negative = false;
 let show_connections = false;
 
-canvas.width  = 600;
-canvas.height = 600;
+canvas.width  = 550;
+canvas.height = 550;
 
 MathJax = {
   loader: {load: ['[tex]/amsCd']},
@@ -910,6 +910,16 @@ function recalculate_math() {
     output.innerHTML = out_string;  
     MathJax.typesetPromise([output]);
   }).catch((err) => console.log(err.message)); 
+
+  let tbl = document.getElementById('table');
+  if(!tbl.classList.contains('tex2jax_ignore')) {
+    MathJax.typesetPromise().then(() => {
+      MathJax.typesetClear([tbl]);
+      MathJax.typesetPromise([tbl]);
+    }).catch((err) => console.log(err.message));
+    tbl.classList.add('tex2jax_ignore');
+  }
+
 }
 
 update();
