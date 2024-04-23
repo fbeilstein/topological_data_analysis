@@ -1,11 +1,14 @@
 let canvas1 = document.getElementById("canvas1");
 let canvas2 = document.getElementById("canvas2");
+let canvas3 = document.getElementById("canvas3");
 let output = document.getElementById("output");
 let context1 = canvas1.getContext("2d");
 let context2 = canvas2.getContext("2d");
+let context3 = canvas3.getContext("2d");
 //colors
 let my_green   = "rgb(144, 238, 144, 0.4)";
 let my_coral   = "rgb(240, 128, 128, 0.2)";
+let my_coral2   = "rgb(240, 128, 128, 0.7)";
 let my_grey    = "rgb(211, 211, 211, 0.4)";
 let my_magenta = "rgb(139, 0, 139, 0.5)"
 let show_balls = true;
@@ -14,13 +17,16 @@ canvas1.width  = 550;
 canvas1.height = 550;
 canvas2.width  = 550;
 canvas2.height = 550;
+canvas3.width  = 550;
+canvas3.height = 550;
+
 
 //globals
 let vertices = [];
 let current_point = -1;
 const RR = 15*15;
 let radius = 100;
-let betti_data = {};
+let betti_data = undefined;
 let canvas2_setup = {"r_max" : 200, "x_off" : 40, "y_off" : 40}; 
 
 class Vertice {
@@ -159,7 +165,10 @@ function update() {
   draw_connections(context1, lines);
   draw_points(context1);
   let betti = calculate_betti(lines, triangles);
-  draw_betti(context2, canvas2, betti_data);
+  if(betti_data!=undefined) {
+    draw_betti_curves(context2, canvas2, betti_data);
+    draw_betti_histograms(context3, canvas3, betti_data.histo)
+  }
   document.getElementById('test').innerText = "Connected components: " + (betti[0]).toString() + "\n Holes: " + (betti[1]).toString();
   requestAnimationFrame(update);
 }
@@ -208,6 +217,24 @@ canvas2.addEventListener('mouseup', function(event) {
   radius = canvas2_setup.r_max * Math.max(0, x - padding-canvas2_setup.x_off)/(canvas2.width-canvas2_setup.x_off);
  
 });
+
+canvas3.addEventListener('mousemove', function(event) {
+  if(event.buttons==1) {
+    let x = event.offsetX;
+    let y = event.offsetY;
+    let padding = parseInt(getComputedStyle(canvas3).getPropertyValue('padding-left'));
+    radius = canvas2_setup.r_max * Math.max(0, x - padding-canvas2_setup.x_off)/(canvas2.width-canvas2_setup.x_off);
+  }
+});
+
+canvas3.addEventListener('mouseup', function(event) {
+  let x = event.offsetX;
+  let y = event.offsetY;
+  let padding = parseInt(getComputedStyle(canvas3).getPropertyValue('padding-left'));
+  radius = canvas2_setup.r_max * Math.max(0, x - padding-canvas2_setup.x_off)/(canvas2.width-canvas2_setup.x_off);
+ 
+});
+
 
 canvas1.addEventListener('mousemove', function(event) {
   if(event.buttons==4) {
@@ -334,18 +361,26 @@ function get_betti_data() {
   let n = 50; // number of r samples
   let out = [];
   let r = 0;
+  let current_b0 = -1;
+  let histo = [];
   for(let i=0; i<=n; ++i) {
     let lines = find_lines(2*r);
     let triangles = find_triangles(2*r);
-    let t = calculate_betti(lines, triangles);
-    M = Math.max(Math.max(M, t[0]), t[1]);
-    out.push([r, t]);
+    let b = calculate_betti(lines, triangles);
+    M = Math.max(Math.max(M, b[0]), b[1]);
+    out.push([r, b]);
+    if(b[0]!=current_b0) {
+      histo.push([r, b[0]]);
+      current_b0 = b[0];
+    }
     r += canvas2_setup.r_max/n;
   }
-  return {"data": out, "max" : M};
+  histo.push([canvas2_setup.r_max, 0])
+  console.log(histo)
+  return {"data": out, "max" : M, "histo" : histo};
 }
 
-function draw_betti(context, canvas, points) {
+function draw_betti_curves(context, canvas, points) {
   if(!points.hasOwnProperty("data")) return;
 
   let x_off = canvas2_setup.x_off;
@@ -360,13 +395,7 @@ function draw_betti(context, canvas, points) {
 
   clear_canvas(context, canvas);
 
-  context.lineWidth = 1;  // vertical scanning line
-  context.strokeStyle = my_magenta;
-  context.beginPath();
-  context.moveTo(x_off+(width_off/r_max)*radius, y_off);
-  context.lineTo(x_off+(width_off/r_max)*radius, canvas.height-y_off);
-  context.stroke();
-  context.closePath();
+  
   context.lineWidth=1;
 
   for(let i=0; i<y_ticks; ++i) { //draw y-ticks and labels
@@ -381,35 +410,11 @@ function draw_betti(context, canvas, points) {
     context.closePath();  
   }
 
-  for(let i=0; i<=x_ticks; ++i) { //draw x-ticks and labels
-    context.strokeStyle = "lightgray";
-    context.beginPath();
-    context.moveTo(x_off+(width_off)*i/x_ticks, canvas.height-y_off+tick_length);
-    context.lineTo(x_off+(width_off)*i/x_ticks, canvas.height-y_off);
-    context.fillStyle = 'lightgray';
-    context.font = "15px Verdana";
-    context.fillText((r_max*i/x_ticks).toString(), x_off-15+(width_off)*i/x_ticks, canvas.height-y_off/4);
-    context.stroke();
-    context.closePath();  
-  }
+  draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r" });
+  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : y_ticks, "y_max" : y_max, "label" : "betti numbers" });
+  draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
 
-  context.fillText("betti numbers", 10,  20);  //axis label
-  context.fillText("r", canvas.width-10,  canvas.height);
-
-  context.strokeStyle = "lightgray";  // y-axis
-  context.beginPath();
-  context.moveTo(x_off, y_off);
-  context.lineTo(x_off, canvas.height-y_off);
-  context.stroke();
-  context.closePath();
-  context.lineWidth=1;
-
-  context.strokeStyle = "lightgray";  // x-axis
-  context.beginPath();
-  context.moveTo(x_off, canvas.height-y_off);
-  context.lineTo(canvas.width, canvas.height-y_off);
-  context.stroke();
-  context.closePath();
+  
 
   context.lineWidth = 1; // draw red curve
   context.strokeStyle = "lightcoral";
@@ -435,6 +440,111 @@ function draw_betti(context, canvas, points) {
   context.closePath();
 }
 
+function draw_betti_histograms(context, canvas, histo) { 
+  clear_canvas(context, canvas);
+  if(histo==undefined) return;
+
+  let x_off = canvas2_setup.x_off;
+  let y_off = canvas2_setup.y_off;
+  let r_max = canvas2_setup.r_max;
+  let x_ticks = 10;
+  draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r"  });
+  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : 0, "y_max" : 0, "label" : "birth/death"  });
+  draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
+  let h = 5;
+  let delta = 10;
+  let y = 20;
+  console.log(histo)
+  
+  for(let i=histo.length-1; i>0; --i) {
+    let x = (canvas.width-x_off)*histo[i][0]/r_max;
+    let n = histo[i-1][1]-histo[i][1]
+    for(let j=0; j<n; ++j) {
+      context.beginPath();
+      context.fillStyle = my_coral2;
+      context.moveTo(x_off,   y_off+y);
+      context.lineTo(x_off+x, y_off+y);
+      context.lineTo(x_off+x, y_off+y+delta);
+      context.lineTo(x_off,   y_off+y+delta);
+      context.lineTo(x_off,   y_off+y);
+      context.fill();
+      context.closePath();
+      y += h+delta;
+    }
+  }
+}
+
+function draw_scanning_line(context, canvas, params) {
+  let x_off   = params.x_off;
+  let y_off   = params.y_off;
+  let x_max   = params.x_max;
+
+  context.lineWidth = 1;  // vertical scanning line
+  context.strokeStyle = my_magenta;
+  context.beginPath();
+  context.moveTo(x_off+((canvas.width-x_off)/x_max)*radius, y_off);
+  context.lineTo(x_off+((canvas.width-x_off)/x_max)*radius, canvas.height-y_off);
+  context.stroke();
+  context.closePath();
+}
+
+function draw_x_axis(context, canvas, params) {
+  let x_ticks = params.x_ticks;
+  let x_off   = params.x_off;
+  let y_off   = params.y_off;
+  let x_max   = params.x_max;
+  let tick_length = y_off/4;
+
+  for(let i=0; i<x_ticks; ++i) { //draw x-ticks and labels
+    context.strokeStyle = "lightgray";
+    context.beginPath();
+    context.moveTo(x_off+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off+tick_length);
+    context.lineTo(x_off+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off);
+    context.fillStyle = 'lightgray';
+    context.font = "15px Verdana";
+    
+      context.fillText((x_max*i/x_ticks).toString(), x_off-15+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off/4);
+    context.stroke();
+    context.closePath();  
+  }
+  context.fillText(params.label, canvas.width-10,  canvas.height-y_off/4);
+
+  context.strokeStyle = "lightgray";  // x-axis
+  context.beginPath();
+  context.moveTo(x_off, canvas.height-y_off);
+  context.lineTo(canvas.width, canvas.height-y_off);
+  context.stroke();
+  context.closePath();
+}
+
+function draw_y_axis(context, canvas, params) {
+  let y_ticks = params.y_ticks;
+  let x_off   = params.x_off;
+  let y_off   = params.y_off;
+  let y_max   = params.y_max;
+  let tick_length = x_off/4;
+
+  context.lineWidth=1;
+  for(let i=0; i<y_ticks; ++i) { //draw y-ticks and labels
+    context.strokeStyle = "lightgray";
+    context.beginPath();
+    context.moveTo(x_off-tick_length, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
+    context.lineTo(x_off, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
+    context.fillStyle = 'lightgray';
+    context.font = "15px Verdana";
+    context.fillText(parseInt(Math.ceil(i*y_max/y_ticks)).toString(), x_off/4, canvas.height+5-y_off-(canvas.height-y_off)*i/y_ticks);
+    context.stroke();
+    context.closePath();  
+  }
+
+  context.strokeStyle = "lightgray";  // y-axis
+  context.beginPath();
+  context.moveTo(x_off, y_off);
+  context.lineTo(x_off, canvas.height-y_off);
+  context.stroke();
+  context.closePath();
+  context.fillText(params.label, 10,  20);  //axis label
+}
 update();
 
 
