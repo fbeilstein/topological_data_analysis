@@ -74,6 +74,7 @@ body{
 
 #test{
     font-family: arial;
- padding-left: 20px;
- padding-top: 20px;
+    font-size: 15px;
+    padding-left: 20px;
+    padding-top: 20px;
 }
