@@ -4,27 +4,26 @@ body{
 
 #canvas1{
     border: 1px solid grey;
-    height: 420px;
-    width: 420px;
+    height: 415px;
+    width: 415px;
 }
 
 #canvas2{
-    padding-left: 10px;
     border: 1px solid grey;
-    height: 420px;
-    width: 420px;
+    height: 415px;
+    width: 415px;
     border : none;
 }
 
 #canvas3{
     border: 1px solid grey;
-    height: 420px;
-    width: 420px;
+    height: 415px;
+    width: 415px;
     border : none;
 }
 
 #info{
-    width : 420px;
+    width : 415px;
     padding-top: 10px;
     padding-left: 10px;
     font-family: arial;
