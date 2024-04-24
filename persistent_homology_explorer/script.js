@@ -14,12 +14,12 @@ let my_magenta = "rgb(139, 0, 139, 0.5)"
 let my_blue = "rgb(135, 206, 250)"
 let show_balls = true;
 
-canvas1.width  = 550;
-canvas1.height = 550;
-canvas2.width  = 550;
-canvas2.height = 550;
-canvas3.width  = 550;
-canvas3.height = 550;
+canvas1.width  = 450;
+canvas1.height = 450;
+canvas2.width  = 450;
+canvas2.height = 450;
+canvas3.width  = 450;
+canvas3.height = 450;
 
 
 //globals
