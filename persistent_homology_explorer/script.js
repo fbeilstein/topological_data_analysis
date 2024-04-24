@@ -1,7 +1,7 @@
-let canvas1 = document.getElementById("canvas1");
-let canvas2 = document.getElementById("canvas2");
-let canvas3 = document.getElementById("canvas3");
-let output = document.getElementById("output");
+let canvas1  = document.getElementById("canvas1");
+let canvas2  = document.getElementById("canvas2");
+let canvas3  = document.getElementById("canvas3");
+let output   = document.getElementById("output");
 let context1 = canvas1.getContext("2d");
 let context2 = canvas2.getContext("2d");
 let context3 = canvas3.getContext("2d");
@@ -26,13 +26,9 @@ canvas3.height = parseInt(getComputedStyle(canvas1).getPropertyValue('width'));
 let vertices = [];
 let current_point = -1;
 const RR = 15*15;
-let radius = 50;
-let betti_data = undefined;
+let radius = 15;
 let L_data = undefined;
-let canvas2_setup = {"r_max" : 250, "x_off" : 30, "y_off" : 30}; 
-let n = 50; // number of r samples
-
-
+let canvas_setup = {"r_max" : 250, "x_off" : 30, "y_off" : 30, "n" : 50}; 
 
 class Vertice {
   constructor(x, y) {
@@ -138,11 +134,6 @@ function draw_balls(context) {
     context.arc(vertices[i].x, vertices[i].y, radius, 0, 2*Math.PI);   
     context.fill();
     context.closePath();
-    context.beginPath();
-    context.fillStyle = 'gray';
-    context.arc(vertices[i].x, vertices[i].y, 4, 0, 2*Math.PI);   
-    context.fill();
-    context.closePath();
   } 
 }
 
@@ -163,15 +154,15 @@ function update() {
   let triangles = find_triangles(2*radius)
   clear_canvas(context1, canvas1);
   if(show_balls) {
-    draw_balls(context1);
     draw_ball_outlines(context1);
+    draw_balls(context1);
   }
   draw_triangles(context1, triangles);
   draw_connections(context1, lines);
   draw_points(context1);
    if(L_data!=undefined) {
     draw_betti_curves(context2, canvas2, [L_data[1], L_data[2]]);
-    draw_betti_histograms1(context3, canvas3, L_data[0])
+    draw_betti_histograms(context3, canvas3, L_data[0])
   }
   requestAnimationFrame(update);
 }
@@ -183,11 +174,7 @@ function radius_plus_delta(delta) {
 
 document.addEventListener('keydown', function (event) {
   if(event.keyCode==49)
-    radius_plus_delta(10);
-  if(event.keyCode==50)
-    radius_plus_delta(-10);
-  if(event.keyCode==51)
-    show_balls = !(show_balls); 
+    show_balls = !(show_balls);     
 });
 
 document.addEventListener('mousewheel', function (event) {
@@ -209,7 +196,7 @@ canvas2.addEventListener('mousemove', function(event) {
     let x = event.offsetX;
     let y = event.offsetY;
     let padding = parseInt(getComputedStyle(canvas2).getPropertyValue('padding-left'));
-    radius = canvas2_setup.r_max * Math.max(0, x - padding-canvas2_setup.x_off)/(canvas2.width-canvas2_setup.x_off);
+    radius = canvas_setup.r_max * Math.max(0, x - padding-canvas_setup.x_off)/(canvas2.width-canvas_setup.x_off);
   }
 });
 
@@ -217,7 +204,7 @@ canvas2.addEventListener('mouseup', function(event) {
   let x = event.offsetX;
   let y = event.offsetY;
   let padding = parseInt(getComputedStyle(canvas2).getPropertyValue('padding-left'));
-  radius = canvas2_setup.r_max * Math.max(0, x - padding-canvas2_setup.x_off)/(canvas2.width-canvas2_setup.x_off);
+  radius = canvas_setup.r_max * Math.max(0, x - padding-canvas_setup.x_off)/(canvas2.width-canvas_setup.x_off);
  
 });
 
@@ -226,7 +213,7 @@ canvas3.addEventListener('mousemove', function(event) {
     let x = event.offsetX;
     let y = event.offsetY;
     let padding = parseInt(getComputedStyle(canvas3).getPropertyValue('padding-left'));
-    radius = canvas2_setup.r_max * Math.max(0, x - padding-canvas2_setup.x_off)/(canvas2.width-canvas2_setup.x_off);
+    radius = canvas_setup.r_max * Math.max(0, x - padding-canvas_setup.x_off)/(canvas2.width-canvas_setup.x_off);
   }
 });
 
@@ -234,7 +221,7 @@ canvas3.addEventListener('mouseup', function(event) {
   let x = event.offsetX;
   let y = event.offsetY;
   let padding = parseInt(getComputedStyle(canvas3).getPropertyValue('padding-left'));
-  radius = canvas2_setup.r_max * Math.max(0, x - padding-canvas2_setup.x_off)/(canvas2.width-canvas2_setup.x_off);
+  radius = canvas_setup.r_max * Math.max(0, x - padding-canvas_setup.x_off)/(canvas2.width-canvas_setup.x_off);
  
 });
 
@@ -346,47 +333,11 @@ function gcd_(a, b) {
   return gcd_(b, a % b);  
 }  
   
-function calculate_betti(lines, triangles) { 
-  let b1 = calculate_boundary(lines);
-  let b2 = calculate_boundary(triangles);
-  let n = vertices.length;
-  let beta_0 = n - b1.rank;
-  let beta_1 = b1.dim[1] - b2.rank - b1.rank;
-  return [beta_0, beta_1];
-}
-
-function calclutate_betti_data() {
-  betti_data = get_betti_data();
-}
-
-function get_betti_data() {
-  let M = 0;
-
-  let out = [];
-  let r = 0;
-  let current_b0 = -1;
-  let histo = [];
-  for(let i=0; i<=n; ++i) {
-    let lines = find_lines(2*r);
-    let triangles = find_triangles(2*r);
-    let b = calculate_betti(lines, triangles);
-    M = Math.max(Math.max(M, b[0]), b[1]);
-    out.push([r, b]);
-    if(b[0]!=current_b0) {
-      histo.push([r, b[0]]);
-      current_b0 = b[0];
-    }
-    r += canvas2_setup.r_max/n;
-  }
-  histo.push([canvas2_setup.r_max, 0])
-  return {"data": out, "max" : M, "histo" : histo};
-}
-
 function draw_betti_curves(context, canvas, RB) {
  
-  let x_off = canvas2_setup.x_off;
-  let y_off = canvas2_setup.y_off;
-  let r_max = canvas2_setup.r_max;
+  let x_off = canvas_setup.x_off;
+  let y_off = canvas_setup.y_off;
+  let r_max = canvas_setup.r_max;
   let x_ticks = 10;
   let y_ticks = vertices.length+1;
   let y_max = vertices.length+1;
@@ -414,12 +365,13 @@ function draw_betti_curves(context, canvas, RB) {
   draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
  
   context.lineWidth = 1; // draw red curve
+  let n = canvas_setup.n;
   let red = RB[0];
   let blue = RB[1];
   let red_accum = red[0];
   let blue_accum = blue[0];
   let x = 0;
-  let x_delta = canvas2_setup.r_max/n;
+  let x_delta = canvas_setup.r_max/n;
   context.strokeStyle = "lightcoral";
   context.beginPath();
   context.moveTo(x_off, parseInt(canvas.height-y_off-red_accum*height_off/y_ticks)); 
@@ -447,67 +399,35 @@ function draw_betti_curves(context, canvas, RB) {
   context.closePath();
 }
 
-function draw_betti_histograms(context, canvas, histo) { 
-  clear_canvas(context, canvas);
-  if(histo==undefined) return;
-
-  let x_off = canvas2_setup.x_off;
-  let y_off = canvas2_setup.y_off;
-  let r_max = canvas2_setup.r_max;
-  let x_ticks = 10;
-  draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r"  });
-  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : 0, "y_max" : 0, "label" : "birth/death"  });
-  draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
-  let h = 5;
-  let delta = 10;
-  let y = 20;
-  
-  for(let i=histo.length-1; i>0; --i) {
-    let x = (canvas.width-x_off)*histo[i][0]/r_max;
-    let n = histo[i-1][1]-histo[i][1]
-    for(let j=0; j<n; ++j) {
-      context.beginPath();
-      context.fillStyle = my_coral2;
-      context.moveTo(x_off,   y_off+y);
-      context.lineTo(x_off+x, y_off+y);
-      context.lineTo(x_off+x, y_off+y+delta);
-      context.lineTo(x_off,   y_off+y+delta);
-      context.lineTo(x_off,   y_off+y);
-      context.fill();
-      context.closePath();
-      y += h+delta;
-    }
-  }
-}
-
-function draw_betti_histograms1(context, canvas, L) { 
+function draw_betti_histograms(context, canvas, L) { 
   clear_canvas(context, canvas);
   if(L==undefined) return;
-  let x_off = canvas2_setup.x_off;
-  let y_off = canvas2_setup.y_off;
-  let r_max = canvas2_setup.r_max;
+  let x_off = canvas_setup.x_off;
+  let y_off = canvas_setup.y_off;
+  let r_max = canvas_setup.r_max;
   let x_ticks = 10;
   draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r"  });
   draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : 0, "y_max" : 0, "label" : "birth/death"  });
   
-  let h = 5;
-  let delta = 10;
-  let y = 20;
+  let n     = canvas_setup.n;
+  let h     = 2;
+  let delta = 5;
+  let y     = 5;
   
   let red = L[0];
   for(let key of red)  {
     let start = (canvas.width-x_off)*(key[0]*r_max/n)/r_max;
     let end = (canvas.width-x_off)*(key[1]*r_max/n)/r_max;
-      context.beginPath();
-      context.fillStyle = my_coral2;
-      context.moveTo(x_off+start,   y_off+y);
-      context.lineTo(x_off+end, y_off+y);
-      context.lineTo(x_off+end, y_off+y+delta);
-      context.lineTo(x_off+start,   y_off+y+delta);
-      context.lineTo(x_off+start,   y_off+y);
-      context.fill();
-      context.closePath();
-      y += h+delta;
+    context.beginPath();
+    context.fillStyle = my_coral2;
+    context.moveTo(x_off+start,   y_off+y);
+    context.lineTo(x_off+end, y_off+y);
+    context.lineTo(x_off+end, y_off+y+delta);
+    context.lineTo(x_off+start,   y_off+y+delta);
+    context.lineTo(x_off+start,   y_off+y);
+    context.fill();
+    context.closePath();
+    y += h+delta;
   }
 
   if(L[1]!=undefined){ 
@@ -602,13 +522,14 @@ function draw_y_axis(context, canvas, params) {
   context.lineTo(x_off, canvas.height-y_off);
   context.stroke();
   context.closePath();
-  context.fillText(params.label, 10,  20);  //axis label
+  context.fillText(params.label, 10,  10);  //axis label
 }
-update();
+
 
 
 function create_filtration()
 {
+  let n = canvas_setup.n;
   let pre_filtration = new Array(n);
   for(let i=0; i<pre_filtration.length; ++i)  
     pre_filtration[i] = new Array();
@@ -616,7 +537,7 @@ function create_filtration()
   for(let i=0; i<vertices.length; ++i)  
     pre_filtration[0].push([i]);
 
-  let r_max = canvas2_setup.r_max;
+  let r_max = canvas_setup.r_max;
   let delta_r = r_max/n;
   for(let i=0; i<vertices.length; ++i)  
     for(let j=i+1; j<vertices.length; ++j) {
@@ -670,9 +591,10 @@ function get_max_index(filtration_set, span) {
   return max_index;
  }
 
-function get_barcodes(filtration){
-  let L = [new Set(), new Set(), new Set()];
-  let red = new Array(n+1).fill(0);
+function get_barcodes(filtration) {
+  let n    = canvas_setup.n;
+  let L    = [new Set(), new Set(), new Set()];
+  let red  = new Array(n+1).fill(0);
   let blue = new Array(n+1).fill(0);
 
   let filtration_set = {};
@@ -702,7 +624,7 @@ function get_barcodes(filtration){
     if(M[j]==true && D[j]==undefined) {
       let k = simplex.length-1;
        if(k==0)
-        L[k].add([filtration[j][1], canvas2_setup.r_max]);
+        L[k].add([filtration[j][1], canvas_setup.r_max]);
     }
   }
 
@@ -783,4 +705,4 @@ function add_spans(span1, span2) {
   return span;
 }
 
-
+update();
