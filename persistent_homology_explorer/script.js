@@ -11,7 +11,7 @@ let my_coral   = "rgb(240, 128, 128, 0.2)";
 let my_coral2   = "rgb(240, 128, 128, 0.7)";
 let my_grey    = "rgb(211, 211, 211, 0.4)";
 let my_magenta = "rgb(139, 0, 139, 0.5)"
-let my_blue = "rgb(135, 206, 250, 0.9)"
+let my_blue = "rgb(135, 206, 250)"
 let show_balls = true;
 
 canvas1.width  = 550;
@@ -169,13 +169,10 @@ function update() {
   draw_triangles(context1, triangles);
   draw_connections(context1, lines);
   draw_points(context1);
-  let betti = calculate_betti(lines, triangles);
-  if(betti_data!=undefined) {
-    draw_betti_curves(context2, canvas2, betti_data);
-
-    draw_betti_histograms1(context3, canvas3, L_data)
+   if(L_data!=undefined) {
+    draw_betti_curves(context2, canvas2, [L_data[1], L_data[2]]);
+    draw_betti_histograms1(context3, canvas3, L_data[0])
   }
-  document.getElementById('test').innerText = "Connected components: " + (betti[0]).toString() + "\n Holes: " + (betti[1]).toString();
   requestAnimationFrame(update);
 }
 
@@ -190,12 +187,7 @@ document.addEventListener('keydown', function (event) {
   if(event.keyCode==50)
     radius_plus_delta(-10);
   if(event.keyCode==51)
-    show_balls = !(show_balls);
-  if(event.keyCode==52)
-  {
-
-  }
-  
+    show_balls = !(show_balls); 
 });
 
 document.addEventListener('mousewheel', function (event) {
@@ -256,14 +248,14 @@ canvas1.addEventListener('mousemove', function(event) {
     let y = event.offsetY;
     vertices[current_point].x = x; 
     vertices[current_point].y = y; 
-    calclutate_betti_data();
+    //calclutate_betti_data();
     L_data = get_barcodes(create_filtration());
   }
 });
 
 function add_point(x,y) {
   vertices.push(new Vertice(x,y));
-  calclutate_betti_data();
+  //calclutate_betti_data();
   L_data = get_barcodes(create_filtration());
 }
 
@@ -271,7 +263,7 @@ function delete_vertice(i) {
   if(i+1!=vertices.length) 
       [vertices[i], vertices[vertices.length-1]] = [vertices[vertices.length-1], vertices[i]];
   vertices.splice(-1);
-  calclutate_betti_data();
+  //calclutate_betti_data();
   L_data = get_barcodes(create_filtration());
 }
 
@@ -393,15 +385,14 @@ function get_betti_data() {
   return {"data": out, "max" : M, "histo" : histo};
 }
 
-function draw_betti_curves(context, canvas, points) {
-  if(!points.hasOwnProperty("data")) return;
-
+function draw_betti_curves(context, canvas, RB) {
+ 
   let x_off = canvas2_setup.x_off;
   let y_off = canvas2_setup.y_off;
   let r_max = canvas2_setup.r_max;
   let x_ticks = 10;
-  let y_ticks = 2 + Math.max(1, points.max);
-  let y_max = points.max+1;
+  let y_ticks = vertices.length+1;
+  let y_max = vertices.length+1;
   let width_off = canvas.width-x_off;
   let height_off = canvas.height-y_off;
   let tick_length = x_off/4;
@@ -426,24 +417,34 @@ function draw_betti_curves(context, canvas, points) {
   draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
  
   context.lineWidth = 1; // draw red curve
+  let red = RB[0];
+  let blue = RB[1];
+  let red_accum = red[0];
+  let blue_accum = blue[0];
+  let x = 0;
+  let x_delta = canvas2_setup.r_max/n;
   context.strokeStyle = "lightcoral";
   context.beginPath();
-  context.moveTo(parseInt(x_off+(width_off/r_max)*points.data[0][0]), parseInt(canvas.height-y_off-points.data[0][1][0]*height_off/y_ticks));
-
-  for(let i=1; i<points.data.length; ++i) {    
-    context.lineTo(parseInt(x_off+(width_off/r_max)*points.data[i][0]), parseInt(canvas.height-y_off-points.data[i-1][1][0]*height_off/y_ticks));   
-    context.lineTo(parseInt(x_off+(width_off/r_max)*points.data[i][0]), parseInt(canvas.height-y_off-points.data[i][1][0]*height_off/y_ticks)); 
+  context.moveTo(x_off, parseInt(canvas.height-y_off-red_accum*height_off/y_ticks)); 
+  for(let i=1; i<red.length; ++i) {    
+    context.lineTo(parseInt(x_off+(width_off/r_max)*x), parseInt(canvas.height-y_off-red_accum*height_off/y_ticks));   
+    red_accum += red[i];
+    x = parseInt(i*x_delta);  
     context.stroke();
+   
   } 
   context.closePath();
-
+  x=0;
   context.lineWidth = 1;    // draw blue curve
-  context.strokeStyle = "RoyalBlue";
+  context.strokeStyle = "DodgerBlue";
   context.beginPath();
-  context.moveTo(parseInt(x_off+(width_off/x_ticks)*points.data[0][0]), parseInt(canvas.height-y_off-points.data[0][1][1]/y_ticks));
-  for(let i=1; i<points.data.length; ++i) {    
-    context.lineTo(parseInt(x_off+(width_off/r_max)*points.data[i][0]), parseInt(canvas.height-y_off-points.data[i-1][1][1]*height_off/y_ticks));   
-    context.lineTo(parseInt(x_off+(width_off/r_max)*points.data[i][0]), parseInt(canvas.height-y_off-points.data[i][1][1]*height_off/y_ticks));
+  context.moveTo(x_off, parseInt(canvas.height-y_off-blue_accum*height_off/y_ticks)); 
+  for(let i=1; i<blue.length; ++i) {    
+    context.lineTo(parseInt(x_off+(width_off/r_max)*x), parseInt(canvas.height-y_off-blue_accum*height_off/y_ticks));  
+    x = parseInt((i-0.5)*x_delta);  
+    context.lineTo(parseInt(x_off+(width_off/r_max)*x), parseInt(canvas.height-y_off-blue_accum*height_off/y_ticks));
+    x = parseInt(i*x_delta);
+    blue_accum += blue[i]; 
     context.stroke();
   } 
   context.closePath();
@@ -485,14 +486,13 @@ function draw_betti_histograms(context, canvas, histo) {
 function draw_betti_histograms1(context, canvas, L) { 
   clear_canvas(context, canvas);
   if(L==undefined) return;
-//console.log("LLLLLLLLLLL", L)
   let x_off = canvas2_setup.x_off;
   let y_off = canvas2_setup.y_off;
   let r_max = canvas2_setup.r_max;
   let x_ticks = 10;
   draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r"  });
   draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : 0, "y_max" : 0, "label" : "birth/death"  });
-  draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
+  
   let h = 5;
   let delta = 10;
   let y = 20;
@@ -501,7 +501,6 @@ function draw_betti_histograms1(context, canvas, L) {
   for(let key of red)  {
     let start = (canvas.width-x_off)*(key[0]*r_max/n)/r_max;
     let end = (canvas.width-x_off)*(key[1]*r_max/n)/r_max;
-  //    console.log("START", start, "END", end)
       context.beginPath();
       context.fillStyle = my_coral2;
       context.moveTo(x_off+start,   y_off+y);
@@ -519,7 +518,6 @@ function draw_betti_histograms1(context, canvas, L) {
     for(let key of blue)  {
       let start = (canvas.width-x_off)*(key[0]*r_max/n)/r_max;
       let end = (canvas.width-x_off)*(key[1]*r_max/n)/r_max;
-       // console.log("START", start, "END", end)
         context.beginPath();
         context.fillStyle = my_blue;
         context.moveTo(x_off+start,   y_off+y);
@@ -532,6 +530,7 @@ function draw_betti_histograms1(context, canvas, L) {
         y += h+delta;
     }
   }
+  draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
 }
 
 
@@ -547,6 +546,8 @@ function draw_scanning_line(context, canvas, params) {
   context.lineTo(x_off+((canvas.width-x_off)/x_max)*radius, canvas.height-y_off);
   context.stroke();
   context.closePath();
+  context.fillStyle = my_magenta;
+  context.fillText(parseInt(radius), x_off-10+((canvas.width-x_off)/x_max)*radius, y_off-3);
 }
 
 function draw_x_axis(context, canvas, params) {
@@ -674,6 +675,8 @@ function get_max_index(filtration_set, span) {
 
 function get_barcodes(filtration){
   let L = [new Set(), new Set(), new Set()];
+  let red = new Array(n+1).fill(0);
+  let blue = new Array(n+1).fill(0);
 
   let filtration_set = {};
   for(let i=0; i<filtration.length; ++i)
@@ -683,9 +686,8 @@ function get_barcodes(filtration){
   let T = new Array(filtration.length).fill(undefined);
   let J = new Array(filtration.length).fill(undefined);
   let D = new Array(filtration.length).fill(undefined);
-  //console.log("len:", filtration.length)
-  for(let j=0; j<filtration.length; ++j) {
-    let d_span = remove_pivot_rows(filtration, filtration_set, M, D, j); // d = [ [[0,1], 1], [[1,2],-1] ]
+   for(let j=0; j<filtration.length; ++j) {
+    let d_span = remove_pivot_rows(filtration, filtration_set, M, D, j); 
     if(d_span.length==0 || d_span==undefined) 
       M[j]=true;
     else {
@@ -693,75 +695,63 @@ function get_barcodes(filtration){
       let k = filtration[i][0].length-1;
       J[i] = j;
       D[i] = d_span;
-      //console.log("L_",i,"L_j",j, D[i])
-      //console.log(k)
-      if(filtration[i][1] != filtration[j][1])
+       if(filtration[i][1] != filtration[j][1])
         L[k].add([filtration[i][1], filtration[j][1]]);
     }
-    //console.log("j=", j, "J=", J, "D=",D, "M=", M)
-  }
+   }
   
   for(let j=0; j<filtration.length; ++j) {
     let simplex = filtration[j][0];
     if(M[j]==true && D[j]==undefined) {
       let k = simplex.length-1;
-      //console.log("L k=", k);
-      if(k==0)
+       if(k==0)
         L[k].add([filtration[j][1], canvas2_setup.r_max]);
     }
   }
- // console.log(L)
-  return L;
+
+  for (let key of L[0]) {
+    red[key[0]] +=1;
+    red[key[1]] -=1;
+  }
+
+  for (let key of L[1]) {
+    blue[key[0]] +=1;
+    blue[key[1]] -=1;
+  }
+  return [L, red, blue];
 }
 
 function remove_pivot_rows(filtration, filtration_set, M, D, j) {
-    //console.log("\nj = ", j)
   let simplex = filtration[j][0];
   let k = simplex.length-1;
-  let d_span = calculate_simplex_boundary(simplex);  // d = [ [[0,1], 1], [[1,2],-1] ]
-  //console.log("simplex", simplex, "d_span" , d_span)
+  let d_span = calculate_simplex_boundary(simplex); 
   let d_marked_span = [];
   for(let i=0; i<d_span.length; ++i) {
       let index = filtration_set[d_span[i][0]];
       if(M[index]==true)
           d_marked_span.push([ [...d_span[i][0]], d_span[i][1] ]);
   }
-  //console.log("d_marked_span" , d_marked_span)    
+
   while(d_marked_span.length>0) {
     let i = get_max_index(filtration_set, d_marked_span);
-    //console.log("max i " , i)  
-    //console.log("D[i] " , D[i])  
     if(D[i]==undefined) break;
     let sigma_i = filtration[i][0];
     let coeff = undefined;
-    //console.log("sigma_i", sigma_i)
-    //console.log("D[i]", D[i])
     for(let k=0; k<D[i].length; ++k){
-      //console.log("????", JSON.stringify(D[i][k][0]), JSON.stringify(sigma_i))
       if(JSON.stringify(D[i][k][0])==JSON.stringify(sigma_i)){
         coeff = D[i][k][1];
-        //console.log("coeff found");
         break;
       }
     }
 
     let coeff1 = undefined;
     for(let k=0; k<d_marked_span.length; ++k){
-      //console.log("????", JSON.stringify(d_marked_span[0]), JSON.stringify(sigma_i))
       if(JSON.stringify(d_marked_span[k][0])==JSON.stringify(sigma_i)){
         coeff1 = d_marked_span[k][1];
-      //  console.log("coeff1 found");
         break;
       }
     }
-
-
-
-    //console.log("coeff", coeff)
-    //console.log("BEFORE marked span", d_marked_span)
-    //console.log("ADD span", multiply_span(D[i], -coeff1/coeff))
     d_marked_span = add_spans(d_marked_span, multiply_span(D[i], -coeff1/coeff))
-    //console.log("AFTER d_marked_span", d_marked_span)
   }
   return d_marked_span;
 }
@@ -773,12 +763,10 @@ function multiply_span(span, number) {
   return out_span;
 }
 
-
 function add_spans(span1, span2) {
   let set = new Set();
   for(let i=0; i<span1.length; ++i)
     set[span1[i][0]] = span1[i][1];
-//console.log(set)
   for(let i=0; i<span2.length; ++i)
     if(set.hasOwnProperty(span2[i][0])) 
         set[span2[i][0]] += span2[i][1];
