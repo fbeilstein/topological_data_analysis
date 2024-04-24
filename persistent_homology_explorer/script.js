@@ -1,18 +1,23 @@
-let canvas1  = document.getElementById("canvas1");
-let canvas2  = document.getElementById("canvas2");
-let canvas3  = document.getElementById("canvas3");
-let output   = document.getElementById("output");
-let context1 = canvas1.getContext("2d");
-let context2 = canvas2.getContext("2d");
-let context3 = canvas3.getContext("2d");
+const canvas1  = document.getElementById("canvas1");
+const canvas2  = document.getElementById("canvas2");
+const canvas3  = document.getElementById("canvas3");
+const output   = document.getElementById("output");
+const context1 = canvas1.getContext("2d");
+const context2 = canvas2.getContext("2d");
+const context3 = canvas3.getContext("2d");
 //colors
-let my_green   = "rgb(144, 238, 144, 0.4)";
-let my_coral   = "rgb(240, 128, 128, 0.2)";
-let my_coral2  = "rgb(240, 128, 128, 0.7)";
-let my_grey    = "rgb(211, 211, 211, 0.4)";
-let my_magenta = "rgb(139, 0, 139, 0.5)"
-let my_blue    = "rgb(135, 206, 250)"
-let show_balls = true;
+const my_green   = "rgb(144, 238, 144, 0.4)";
+const my_coral   = "rgb(240, 128, 128, 0.2)";
+const my_coral2  = "rgb(240, 128, 128, 0.7)";
+const my_grey    = "rgb(211, 211, 211, 0.4)";
+const my_lightgray  = "rgb(211, 211, 211, 0.2)";
+const my_magenta = "rgb(139, 0, 139, 0.5)"
+const my_blue    = "rgb(135, 206, 250)"
+const show_balls = true;
+const axis_ticks_labels_color = "lightgray";
+const red_curve_color = "lightcoral";
+const blue_curve_color ="DodgerBlue";
+const label_font  = "12px Verdana";
 
 canvas1.width  = 
 canvas1.height = 
@@ -25,21 +30,15 @@ canvas3.height = parseInt(getComputedStyle(canvas1).getPropertyValue('width'));
 //globals
 let vertices = [];
 let current_point = -1;
-const RR = 15*15;
+const RR = 19*19;
 let radius = 15;
 let L_data = undefined;
-let canvas_setup = {"r_max" : 250, "x_off" : 30, "y_off" : 30, "n" : 50}; 
+const canvas_setup = {"r_max" : 250, "x_off" : 30, "y_off" : 30, "n" : 50}; 
 
 class Vertice {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-  }
-}
-
-class Triangle {
-  constructor(a, b, c) {
-    this.vertices = [a,b,c];
   }
 }
 
@@ -66,7 +65,7 @@ function draw_triangles(context, triangles) {
   }   
 }
 
-function find_lines(r) { 
+function get_lines(r) { 
   let lines = [];
   for(let i=0; i<vertices.length; ++i)
     for(let j=i+1; j<vertices.length; ++j)
@@ -74,7 +73,7 @@ function find_lines(r) {
   return lines;
 }
 
-function find_triangles(r) { 
+function get_triangles(r) { 
   let triangles = [];
   for(let i=0; i<vertices.length; ++i)
     for(let j=i+1; j<vertices.length; ++j)
@@ -111,7 +110,7 @@ function draw_points(context) {
     for(let i=0; i<vertices.length; ++i) {
       context.beginPath();
       context.fillStyle = 'gray';
-      context.arc(vertices[i].x, vertices[i].y, 4, 0, 2*Math.PI);   
+      context.arc(vertices[i].x, vertices[i].y, 3, 0, 2*Math.PI);   
       context.fill();
       context.closePath();
   } 
@@ -150,17 +149,20 @@ function clear_canvas(context, canvas) {
 }
 
 function update() {
-  let lines = find_lines(2*radius);
-  let triangles = find_triangles(2*radius)
+  let lines     = get_lines(2*radius);
+  let triangles = get_triangles(2*radius)
   clear_canvas(context1, canvas1);
+  
   if(show_balls) {
     draw_ball_outlines(context1);
     draw_balls(context1);
   }
+
   draw_triangles(context1, triangles);
   draw_connections(context1, lines);
   draw_points(context1);
-   if(L_data!=undefined) {
+
+  if(L_data != undefined) {
     draw_betti_curves(context2, canvas2, [L_data[1], L_data[2]]);
     draw_betti_histograms(context3, canvas3, L_data[0])
   }
@@ -169,7 +171,7 @@ function update() {
 
 function radius_plus_delta(delta) {
   if(delta<0 && radius>10-delta) radius += delta;
-  if(delta>0 && radius<200)  radius += delta;
+  if(delta>0 && radius<200)     radius += delta;
 }
 
 document.addEventListener('keydown', function (event) {
@@ -182,8 +184,8 @@ document.addEventListener('mousewheel', function (event) {
 });
 
 canvas1.addEventListener('mousedown', function(event) {
-  let x = event.offsetX;
-  let y = event.offsetY;
+  const x = event.offsetX;
+  const y = event.offsetY;
   current_point = get_closest_vertice(new Vertice(x,y));
 });
 
@@ -193,38 +195,30 @@ canvas1.addEventListener('mouseup', function(event) {
 
 canvas2.addEventListener('mousemove', function(event) {
   if(event.buttons==1) {
-    let x = event.offsetX;
-    let y = event.offsetY;
-    let padding = parseInt(getComputedStyle(canvas2).getPropertyValue('padding-left'));
-    radius = canvas_setup.r_max * Math.max(0, x - padding-canvas_setup.x_off)/(canvas2.width-canvas_setup.x_off);
+    move_scanning_line(canvas3, event);
   }
 });
 
 canvas2.addEventListener('mouseup', function(event) {
-  let x = event.offsetX;
-  let y = event.offsetY;
-  let padding = parseInt(getComputedStyle(canvas2).getPropertyValue('padding-left'));
-  radius = canvas_setup.r_max * Math.max(0, x - padding-canvas_setup.x_off)/(canvas2.width-canvas_setup.x_off);
- 
+  move_scanning_line(canvas2, event);
 });
 
 canvas3.addEventListener('mousemove', function(event) {
   if(event.buttons==1) {
-    let x = event.offsetX;
-    let y = event.offsetY;
-    let padding = parseInt(getComputedStyle(canvas3).getPropertyValue('padding-left'));
-    radius = canvas_setup.r_max * Math.max(0, x - padding-canvas_setup.x_off)/(canvas2.width-canvas_setup.x_off);
+    move_scanning_line(canvas3, event);
   }
 });
 
 canvas3.addEventListener('mouseup', function(event) {
+  move_scanning_line(canvas3, event);
+});
+
+function move_scanning_line(canvas, event) {
   let x = event.offsetX;
   let y = event.offsetY;
   let padding = parseInt(getComputedStyle(canvas3).getPropertyValue('padding-left'));
   radius = canvas_setup.r_max * Math.max(0, x - padding-canvas_setup.x_off)/(canvas2.width-canvas_setup.x_off);
- 
-});
-
+}
 
 canvas1.addEventListener('mousemove', function(event) {
   if(event.buttons==4) {
@@ -252,127 +246,39 @@ function delete_vertice(i) {
 }
 
 canvas1.addEventListener('dblclick', function(event) {
-  let x = event.offsetX;
-  let y = event.offsetY;
-  let current_point = get_closest_vertice(new Vertice(x, y));
+  const x = event.offsetX;
+  const y = event.offsetY;
+  const current_point = get_closest_vertice(new Vertice(x, y));
   if(current_point!=-1)
     delete_vertice(current_point);
   else
     add_point(x,y);
 });
 
-/////////////////////////////////////// math 
-
-function calculate_boundary(tt){
-  let n = tt.length;
-  let matrix = new Object();
-  for(let i=0; i<n; ++i) {
-      for(let j=0; j<tt[i].length; ++j){
-          let x = tt[i].slice(0,j).concat(tt[i].slice(j+1));
-          if (x=='') continue;
-          if(!matrix.hasOwnProperty(x)){
-              matrix[x] = (Array(n)).fill(0);
-          }
-          matrix[x][i] += ((j%2)==0 ? 1 : -1);
-      }
-  }
-
-  let m = [];
-  for (let key in matrix) {
-      m.push([...matrix[key]]);
-  }
-
-  let m_dim = [m.length, n];
-  let rank = matrixRank(m); 
-  return {"dim" : m_dim, "rank" : rank, "matrix" : matrix};
-}
-
-
-function matrixRank(matrix) {
-  const numRows = matrix.length;
-  if(numRows==0) return 0;
-  const numCols = matrix[0].length;
-  let rank = Math.min(numRows, numCols);
-  let row = 0;
-
-  for (let col = 0; col < numCols && row < numRows; col++) {
-      let pivotRow = row;
-      while (pivotRow < numRows && matrix[pivotRow][col] === 0) {
-          pivotRow++;
-      }
-
-      if (pivotRow === numRows) {
-          continue;
-      }
-
-      [matrix[row], matrix[pivotRow]] = [matrix[pivotRow], matrix[row]];
-
-      for (let i = row + 1; i < numRows; i++) {
-          if(matrix[i][col]==0) continue;
-          const gcd = gcd_(Math.abs(matrix[row][col]), Math.abs(matrix[i][col]));
-          const lcm = Math.abs(matrix[row][col] / gcd * matrix[i][col]);
-          const multiplier1 = lcm / matrix[row][col];
-          const multiplier2 = lcm / matrix[i][col];
-
-          for (let j = col; j < numCols; j++) {
-              matrix[i][j] = (matrix[i][j] * multiplier1 - matrix[row][j] * multiplier2);
-          }
-      }
-      row++;
-  }
-
-  rank = matrix.reduce((count, row) => {
-      return count + (row.some(entry => entry !== 0) ? 1 : 0);
-  }, 0);
-
-  return rank;
-}
-
-function gcd_(a, b) {  
-  if (b == 0) return a;  
-  return gcd_(b, a % b);  
-}  
-  
 function draw_betti_curves(context, canvas, RB) {
+  const x_off       = canvas_setup.x_off;
+  const y_off       = canvas_setup.y_off;
+  const r_max       = canvas_setup.r_max;
+  const x_ticks     = 10;
+  const y_ticks     = vertices.length+1;
+  const y_max       = vertices.length+1;
+  const width_off   = canvas.width-x_off;
+  const height_off  = canvas.height-y_off;
  
-  let x_off = canvas_setup.x_off;
-  let y_off = canvas_setup.y_off;
-  let r_max = canvas_setup.r_max;
-  let x_ticks = 10;
-  let y_ticks = vertices.length+1;
-  let y_max = vertices.length+1;
-  let width_off = canvas.width-x_off;
-  let height_off = canvas.height-y_off;
-  let tick_length = x_off/4;
-
   clear_canvas(context, canvas);
-  context.lineWidth = 1;
-
-  for(let i=0; i<y_ticks; ++i) { //draw y-ticks and labels
-    context.strokeStyle = "lightgray";
-    context.beginPath();
-    context.moveTo(x_off-tick_length, canvas.height-y_off-(height_off)*i/y_ticks);
-    context.lineTo(x_off, canvas.height-y_off-(height_off)*i/y_ticks);
-    context.fillStyle = 'lightgray';
-    context.font = "12px Verdana";
-    context.fillText(parseInt(Math.ceil(i*y_max/y_ticks)).toString(), x_off/4, canvas.height+5-y_off-(height_off)*i/y_ticks);
-    context.stroke();
-    context.closePath();  
-  }
-
   draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r" });
   draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : y_ticks, "y_max" : y_max, "label" : "betti numbers" });
   draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
  
   context.lineWidth = 1; // draw red curve
-  let n = canvas_setup.n;
-  let red = RB[0];
-  let blue = RB[1];
+  const n = canvas_setup.n;
+  const x_delta = canvas_setup.r_max/n;
+  const red = RB[0];
+  const blue = RB[1];
   let red_accum = red[0];
   let blue_accum = blue[0];
   let x = 0;
-  let x_delta = canvas_setup.r_max/n;
-  context.strokeStyle = "lightcoral";
+  context.strokeStyle = red_curve_color;
   context.beginPath();
   context.moveTo(x_off, parseInt(canvas.height-y_off-red_accum*height_off/y_ticks)); 
   for(let i=1; i<red.length; ++i) {    
@@ -380,12 +286,12 @@ function draw_betti_curves(context, canvas, RB) {
     red_accum += red[i];
     x = parseInt(i*x_delta);  
     context.stroke();
-   
   } 
   context.closePath();
-  x=0;
+
+  x = 0;
   context.lineWidth = 1;    // draw blue curve
-  context.strokeStyle = "DodgerBlue";
+  context.strokeStyle = blue_curve_color;
   context.beginPath();
   context.moveTo(x_off, parseInt(canvas.height-y_off-blue_accum*height_off/y_ticks)); 
   for(let i=1; i<blue.length; ++i) {    
@@ -402,19 +308,20 @@ function draw_betti_curves(context, canvas, RB) {
 function draw_betti_histograms(context, canvas, L) { 
   clear_canvas(context, canvas);
   if(L==undefined) return;
-  let x_off = canvas_setup.x_off;
-  let y_off = canvas_setup.y_off;
-  let r_max = canvas_setup.r_max;
-  let x_ticks = 10;
+  const x_off = canvas_setup.x_off;
+  const y_off = canvas_setup.y_off;
+  const r_max = canvas_setup.r_max;
+  const x_ticks = 10;
+
   draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r"  });
   draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : 0, "y_max" : 0, "label" : "birth/death"  });
   
-  let n     = canvas_setup.n;
-  let h     = 2;
-  let delta = 5;
-  let y     = 5;
-  
-  let red = L[0];
+  const n     = canvas_setup.n;
+  const h     = 2;
+  const delta = 5;
+  let y       = 5;
+  let red     = L[0];
+
   for(let key of red)  {
     let start = (canvas.width-x_off)*(key[0]*r_max/n)/r_max;
     let end = (canvas.width-x_off)*(key[1]*r_max/n)/r_max;
@@ -430,31 +337,29 @@ function draw_betti_histograms(context, canvas, L) {
     y += h+delta;
   }
 
-  if(L[1]!=undefined){ 
-    let blue = L[1];
-    for(let key of blue)  {
-      let start = (canvas.width-x_off)*(key[0]*r_max/n)/r_max;
-      let end = (canvas.width-x_off)*(key[1]*r_max/n)/r_max;
-        context.beginPath();
-        context.fillStyle = my_blue;
-        context.moveTo(x_off+start,   y_off+y);
-        context.lineTo(x_off+end, y_off+y);
-        context.lineTo(x_off+end, y_off+y+delta);
-        context.lineTo(x_off+start,   y_off+y+delta);
-        context.lineTo(x_off+start,   y_off+y);
-        context.fill();
-        context.closePath();
-        y += h+delta;
-    }
+  let blue = L[1];
+  for(let key of blue) {
+    let start = (canvas.width-x_off)*(key[0]*r_max/n)/r_max;
+    let end = (canvas.width-x_off)*(key[1]*r_max/n)/r_max;
+    context.beginPath();
+    context.fillStyle = my_blue;
+    context.moveTo(x_off+start,   y_off+y);
+    context.lineTo(x_off+end, y_off+y);
+    context.lineTo(x_off+end, y_off+y+delta);
+    context.lineTo(x_off+start,   y_off+y+delta);
+    context.lineTo(x_off+start,   y_off+y);
+    context.fill();
+    context.closePath();
+    y += h+delta;
   }
   draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
 }
 
 
 function draw_scanning_line(context, canvas, params) {
-  let x_off   = params.x_off;
-  let y_off   = params.y_off;
-  let x_max   = params.x_max;
+  const x_off   = params.x_off;
+  const y_off   = params.y_off;
+  const x_max   = params.x_max;
 
   context.lineWidth = 1;  // vertical scanning line
   context.strokeStyle = my_magenta;
@@ -475,20 +380,19 @@ function draw_x_axis(context, canvas, params) {
   let tick_length = y_off/4;
 
   for(let i=0; i<x_ticks; ++i) { //draw x-ticks and labels
-    context.strokeStyle = "lightgray";
+    context.strokeStyle = axis_ticks_labels_color;
     context.beginPath();
     context.moveTo(x_off+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off+tick_length);
     context.lineTo(x_off+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off);
-    context.fillStyle = 'lightgray';
-    context.font = "12px Verdana";
-    
+    context.fillStyle = axis_ticks_labels_color;
+    context.font = label_font;
     context.fillText((x_max*i/x_ticks).toString(), x_off-15+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off/4);
     context.stroke();
     context.closePath();  
   }
   context.fillText(params.label, canvas.width-10,  canvas.height-y_off/4);
 
-  context.strokeStyle = "lightgray";  // x-axis
+  context.strokeStyle = axis_ticks_labels_color;  // x-axis
   context.beginPath();
   context.moveTo(x_off, canvas.height-y_off);
   context.lineTo(canvas.width, canvas.height-y_off);
@@ -497,39 +401,42 @@ function draw_x_axis(context, canvas, params) {
 }
 
 function draw_y_axis(context, canvas, params) {
-  let y_ticks = params.y_ticks;
-  let x_off   = params.x_off;
-  let y_off   = params.y_off;
-  let y_max   = params.y_max;
-  let tick_length = x_off/4;
+  const y_ticks = params.y_ticks;
+  const x_off   = params.x_off;
+  const y_off   = params.y_off;
+  const y_max   = params.y_max;
+  const tick_length = x_off/4;
 
-  context.lineWidth=1;
+  context.lineWidth = 1;
   for(let i=0; i<y_ticks; ++i) { //draw y-ticks and labels
-    context.strokeStyle = "lightgray";
+    context.strokeStyle = axis_ticks_labels_color;
     context.beginPath();
     context.moveTo(x_off-tick_length, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
     context.lineTo(x_off, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
-    context.fillStyle = 'lightgray';
-    context.font = "12px Verdana";
+    context.strokeStyle = my_lightgray;
+    context.stroke();
+    context.lineTo(canvas.width, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
+    context.stroke();
+    context.fillStyle = axis_ticks_labels_color;
+    context.font = label_font;
     context.fillText(parseInt(Math.ceil(i*y_max/y_ticks)).toString(), x_off/4, canvas.height+5-y_off-(canvas.height-y_off)*i/y_ticks);
     context.stroke();
     context.closePath();  
   }
 
-  context.strokeStyle = "lightgray";  // y-axis
+  context.strokeStyle = axis_ticks_labels_color;  // y-axis
   context.beginPath();
-  context.moveTo(x_off, y_off);
+  context.moveTo(x_off, y_off/2);
   context.lineTo(x_off, canvas.height-y_off);
   context.stroke();
   context.closePath();
   context.fillText(params.label, 10,  10);  //axis label
+  context.closePath();  
 }
-
-
 
 function create_filtration()
 {
-  let n = canvas_setup.n;
+  const n = canvas_setup.n;
   let pre_filtration = new Array(n);
   for(let i=0; i<pre_filtration.length; ++i)  
     pre_filtration[i] = new Array();
@@ -558,7 +465,6 @@ function create_filtration()
         let f1 = Math.sqrt(get_distance(vertices[i], new Vertice((vertices[j].x+vertices[k].x)/2, (vertices[j].y+vertices[k].y)/2)));
         let f2 = Math.sqrt(get_distance(vertices[j], new Vertice((vertices[i].x+vertices[k].x)/2, (vertices[i].y+vertices[k].y)/2)));
         let f3 = Math.sqrt(get_distance(vertices[k], new Vertice((vertices[i].x+vertices[j].x)/2, (vertices[i].y+vertices[j].y)/2)));
-
         let r_critical = Math.max(Math.min(R, f1, f2, f3), l1/2, l2/2, l3/2);
         let index = Math.ceil(r_critical/delta_r);
         if(index<pre_filtration.length)
@@ -591,8 +497,9 @@ function get_max_index(filtration_set, span) {
   return max_index;
  }
 
+// algo from the paper https://geometry.stanford.edu/papers/zc-cph-05/zc-cph-05.pdf
 function get_barcodes(filtration) {
-  let n    = canvas_setup.n;
+  const n    = canvas_setup.n;
   let L    = [new Set(), new Set(), new Set()];
   let red  = new Array(n+1).fill(0);
   let blue = new Array(n+1).fill(0);
@@ -686,12 +593,12 @@ function add_spans(span1, span2) {
   let set = new Set();
   for(let i=0; i<span1.length; ++i)
     set[span1[i][0]] = span1[i][1];
-  for(let i=0; i<span2.length; ++i)
+  for(let i=0; i<span2.length; ++i) {
     if(set.hasOwnProperty(span2[i][0])) 
         set[span2[i][0]] += span2[i][1];
     else
         set[span2[i][0]] = span2[i][1];
-
+  }
   let span = [];    
   for (let key in set) {
     if(set[key]!=0) {
