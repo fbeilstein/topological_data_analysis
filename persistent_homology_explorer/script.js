@@ -8,18 +8,18 @@ let context3 = canvas3.getContext("2d");
 //colors
 let my_green   = "rgb(144, 238, 144, 0.4)";
 let my_coral   = "rgb(240, 128, 128, 0.2)";
-let my_coral2   = "rgb(240, 128, 128, 0.7)";
+let my_coral2  = "rgb(240, 128, 128, 0.7)";
 let my_grey    = "rgb(211, 211, 211, 0.4)";
 let my_magenta = "rgb(139, 0, 139, 0.5)"
-let my_blue = "rgb(135, 206, 250)"
+let my_blue    = "rgb(135, 206, 250)"
 let show_balls = true;
 
-canvas1.width  = 450;
-canvas1.height = 450;
-canvas2.width  = 450;
-canvas2.height = 450;
-canvas3.width  = 450;
-canvas3.height = 450;
+canvas1.width  = 
+canvas1.height = 
+canvas2.width  = 
+canvas2.height = 
+canvas3.width  = 
+canvas3.height = parseInt(getComputedStyle(canvas1).getPropertyValue('width'));
 
 
 //globals
@@ -29,7 +29,7 @@ const RR = 15*15;
 let radius = 100;
 let betti_data = undefined;
 let L_data = undefined;
-let canvas2_setup = {"r_max" : 250, "x_off" : 40, "y_off" : 40}; 
+let canvas2_setup = {"r_max" : 250, "x_off" : 30, "y_off" : 30}; 
 let n = 50; // number of r samples
 
 
@@ -115,7 +115,7 @@ function draw_points(context) {
     for(let i=0; i<vertices.length; ++i) {
       context.beginPath();
       context.fillStyle = 'gray';
-      context.arc(vertices[i].x, vertices[i].y, 5, 0, 2*Math.PI);   
+      context.arc(vertices[i].x, vertices[i].y, 4, 0, 2*Math.PI);   
       context.fill();
       context.closePath();
   } 
@@ -140,7 +140,7 @@ function draw_balls(context) {
     context.closePath();
     context.beginPath();
     context.fillStyle = 'gray';
-    context.arc(vertices[i].x, vertices[i].y, 5, 0, 2*Math.PI);   
+    context.arc(vertices[i].x, vertices[i].y, 4, 0, 2*Math.PI);   
     context.fill();
     context.closePath();
   } 
@@ -248,14 +248,12 @@ canvas1.addEventListener('mousemove', function(event) {
     let y = event.offsetY;
     vertices[current_point].x = x; 
     vertices[current_point].y = y; 
-    //calclutate_betti_data();
     L_data = get_barcodes(create_filtration());
   }
 });
 
 function add_point(x,y) {
   vertices.push(new Vertice(x,y));
-  //calclutate_betti_data();
   L_data = get_barcodes(create_filtration());
 }
 
@@ -263,7 +261,6 @@ function delete_vertice(i) {
   if(i+1!=vertices.length) 
       [vertices[i], vertices[vertices.length-1]] = [vertices[vertices.length-1], vertices[i]];
   vertices.splice(-1);
-  //calclutate_betti_data();
   L_data = get_barcodes(create_filtration());
 }
 
@@ -406,7 +403,7 @@ function draw_betti_curves(context, canvas, RB) {
     context.moveTo(x_off-tick_length, canvas.height-y_off-(height_off)*i/y_ticks);
     context.lineTo(x_off, canvas.height-y_off-(height_off)*i/y_ticks);
     context.fillStyle = 'lightgray';
-    context.font = "15px Verdana";
+    context.font = "12px Verdana";
     context.fillText(parseInt(Math.ceil(i*y_max/y_ticks)).toString(), x_off/4, canvas.height+5-y_off-(height_off)*i/y_ticks);
     context.stroke();
     context.closePath();  
@@ -563,7 +560,7 @@ function draw_x_axis(context, canvas, params) {
     context.moveTo(x_off+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off+tick_length);
     context.lineTo(x_off+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off);
     context.fillStyle = 'lightgray';
-    context.font = "15px Verdana";
+    context.font = "12px Verdana";
     
     context.fillText((x_max*i/x_ticks).toString(), x_off-15+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off/4);
     context.stroke();
@@ -593,7 +590,7 @@ function draw_y_axis(context, canvas, params) {
     context.moveTo(x_off-tick_length, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
     context.lineTo(x_off, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
     context.fillStyle = 'lightgray';
-    context.font = "15px Verdana";
+    context.font = "12px Verdana";
     context.fillText(parseInt(Math.ceil(i*y_max/y_ticks)).toString(), x_off/4, canvas.height+5-y_off-(canvas.height-y_off)*i/y_ticks);
     context.stroke();
     context.closePath();  
