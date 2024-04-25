@@ -827,7 +827,7 @@ function chain_latex(chain) {
   let latex = "";
   for(let ch of chain)
    latex += "\\(" + ch + "\\), ";
-  return latex;
+  return latex.slice(0, latex.length-2);
 }
 
 function array_latex(array) {
@@ -881,18 +881,18 @@ function recalculate_math() {
 
 
   let b0 = calculate_boundary(ch0);
-  out_string += "<br><br> <span style='display:inline-block; width:24px'></span> 0-boundary : \\( \\text{dim} = " + b0.dim.toString() + "\\); \\( \\text{rank} = " + b0.rank.toString() + "\\)";
+  out_string += "<br><br>0-boundary : \\( 0 \\) ";
   b1 = calculate_boundary(ch1);
   let b1_matrix_latex = matrix_latex(b1.m, b1.v, b1.k);
-  out_string += "<br>" + hide_show_latex(b1_matrix_latex, 'BD1_div', 'BD1_btn'); 
-  out_string += "1-boundary : \\( \\text{dim} = " + b1.dim.toString() + "\\); \\( \\text{rank} = " + b1.rank.toString() + "\\); \\(\\text{Smith} = \\)";
+  out_string += "<br> 1-boundary :" + hide_show_latex(b1_matrix_latex, 'BD1_div', 'BD1_btn'); 
+  out_string += "\\(\\text{Smith} = \\) ";
   let Smith1_latex = array_latex(b1.smith_invs);
   out_string += (b1.smith_invs.length > max_length) ? hide_show_latex(Smith1_latex, 'SM1_div', 'SM1_btn') : Smith1_latex;
+
   b2 = calculate_boundary(ch2);
   let b2_matrix_latex = matrix_latex(b2.m, b2.v, b2.k);
-  out_string += "<br>" + hide_show_latex(b2_matrix_latex, 'BD2_div', 'BD2_btn'); 
-
-  out_string += "2-boundary : \\( \\text{dim} = " + b2.dim.toString() + "\\); \\( \\text{rank} = " + b2.rank.toString() + "\\); \\(\\text{Smith} = \\)";
+  out_string += "<br> 2-boundary :" + hide_show_latex(b2_matrix_latex, 'BD2_div', 'BD2_btn'); 
+  out_string += "\\(\\text{Smith} = \\) ";
   let Smith2_latex = array_latex(b2.smith_invs);
   out_string += (b2.smith_invs.length > max_length) ? hide_show_latex(Smith2_latex, 'SM2_div', 'SM2_btn') : Smith2_latex;
 
@@ -902,17 +902,34 @@ function recalculate_math() {
   out_string += "<br>holes : \\(" + holes.toString() + "\\)";
   let voids = out_triangles.length - b2.rank;
   out_string += "<br>voids :  \\(" + voids.toString()+"\\)";
+
+
   out_string += "<br><br> \\( H_0(K) = \\text{Ker}(\\partial_0) / \\text{Im}(\\partial_1) \\cong \\mathbb{Z}^{" + conn_components.toString() + "}\\)"; 
-  out_string += "<br> \\( H_1(K) = \\text{Ker}(\\partial_1) / \\text{Im}(\\partial_2) \\cong \\mathbb{Z}^{" + holes.toString() + "}"; 
+  out_string += "<br> \\( H_1(K) = \\text{Ker}(\\partial_1) / \\text{Im}(\\partial_2) \\cong"
+  if (holes)
+    out_string += " \\mathbb{Z}^{" + holes.toString() + "}";
+  else if (!b2.torsion.length)
+    out_string += "\\{0\\}";
+  let add_oplus = !!holes;
   for (let t of b2.torsion)
-    out_string += "\\oplus \\mathbb{Z}_{" + Math.abs(t).toString() + "}";
+  {
+    out_string += (add_oplus ? "\\oplus " : "") + "\\mathbb{Z}_{" + Math.abs(t).toString() + "}";
+    add_oplus = true;
+  }
   out_string += "\\)";  
-  out_string += "<br> \\( H_2(K) = \\text{Ker}(\\partial_2) / \\text{Im}(\\partial_3) \\cong \\mathbb{Z}^{" + voids.toString() + "}\\)"; 
+  out_string += "<br> \\( H_2(K) = \\text{Ker}(\\partial_2) / \\text{Im}(\\partial_3) \\cong "
+  if (voids)
+    out_string += "\\mathbb{Z}^{" + voids.toString() + "}\\)";
+  else
+    out_string += "\\{0\\} \\)";
 
   out_string += "<br>\n";
   out_string += "$$\n";
   out_string += "\\begin{CD}\n";
-  out_string += "\\emptyset @>\\partial_{3}>> C_2 @>\\partial_{2}>> C_{1} @>\\partial_{1}>> C_0 @>\\partial_0>> 0\n";
+  out_string += "\\underset{\\dim = 0}{\\emptyset} @>\\partial_{3}>\\text{rank} = 0>" 
+  out_string += "\\underset{\\dim = " + ch2.length.toString() + "}{C_2} @>\\partial_{2}>\\text{rank} = " + b2.rank.toString() + "> "
+  out_string += "\\underset{\\dim = " + ch1.length.toString() + "}{C_1} @>\\partial_{1}>\\text{rank} = " + b1.rank.toString() + "> "
+  out_string += "\\underset{\\dim = " + ch0.length.toString() + "}{C_0} @>\\partial_0>\\text{rank} = 0> 0\n";
   out_string += "\\end{CD}\n"; 
   out_string += "$$\n";
 
