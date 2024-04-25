@@ -2,17 +2,19 @@ const canvas1  = document.getElementById("canvas1");
 const canvas2  = document.getElementById("canvas2");
 const canvas3  = document.getElementById("canvas3");
 const output   = document.getElementById("output");
-const button   = document.getElementById("btn");
 const context1 = canvas1.getContext("2d");
 const context2 = canvas2.getContext("2d");
 const context3 = canvas3.getContext("2d");
+let btn1 = document.getElementsByClassName("btn1")[0];
+let btn2 = document.getElementsByClassName("btn2")[0];
+
 //colors
 const my_green   = "rgb(144, 238, 144, 0.4)";
 const my_coral   = "rgb(240, 128, 128, 0.2)";
 const red_histo_color  = "rgb(240, 128, 128, 0.7)";
 const my_lightgray  = "rgb(211, 211, 211, 0.2)";
 const scan_line_color = "rgb(139, 0, 139, 0.5)"
-const blue_histo_color    = "rgb(135, 206, 250)"
+const blue_histo_color    = "DodgerBlue"
 const axis_ticks_labels_color = "lightgray";
 const red_curve_color = "lightcoral";
 const blue_curve_color ="DodgerBlue";
@@ -32,8 +34,11 @@ let current_point = -1;
 const RR = 19*19;
 let radius = 15;
 let L_data = undefined;
+let alpha_filtration = undefined;
 let show_balls = true;
-const canvas_setup = {"r_max" : 250, "x_off" : 30, "y_off" : 30, "n" : 50}; 
+let is_cech_not_alpha = true;
+
+const canvas_setup = {"r_max" : 150, "x_off" : 30, "y_off" : 30, "n" : 50}; 
 
 class Vertice {
   constructor(x, y) {
@@ -65,15 +70,36 @@ function draw_triangles(context, triangles) {
   }   
 }
 
-function get_lines(r) { 
+
+function get_lines_alpha(r) { 
+  let T = [];
+  for (let i = 0; i < alpha_filtration.length; ++i)
+  {
+    if (alpha_filtration[i][1] < r && alpha_filtration[i][0].length == 2)
+      T.push(alpha_filtration[i][0]);
+  }
+  return T;
+}
+
+function get_lines_cech(r) { 
   let lines = [];
   for(let i=0; i<vertices.length; ++i)
     for(let j=i+1; j<vertices.length; ++j)
-      if(get_distance(vertices[i], vertices[j])<r*r) lines.push([i, j]);
+      if(Math.sqrt(get_distance(vertices[i], vertices[j]))<2*r) lines.push([i, j]);
   return lines;
 }
 
-function get_triangles(r) { 
+function get_triangles_alpha(r) { 
+  let T = [];
+  for (let i = 0; i < alpha_filtration.length; ++i)
+  {
+    if (alpha_filtration[i][1] < r && alpha_filtration[i][0].length == 3)
+      T.push(alpha_filtration[i][0]);
+  }
+  return T;
+}
+ 
+function get_triangles_cech(r) { 
   let triangles = [];
   for(let i=0; i<vertices.length; ++i)
     for(let j=i+1; j<vertices.length; ++j)
@@ -87,7 +113,7 @@ function get_triangles(r) {
         let f1 = Math.sqrt(get_distance(vertices[i], new Vertice((vertices[j].x+vertices[k].x)/2, (vertices[j].y+vertices[k].y)/2)));
         let f2 = Math.sqrt(get_distance(vertices[j], new Vertice((vertices[i].x+vertices[k].x)/2, (vertices[i].y+vertices[k].y)/2)));
         let f3 = Math.sqrt(get_distance(vertices[k], new Vertice((vertices[i].x+vertices[j].x)/2, (vertices[i].y+vertices[j].y)/2)));
-        if(l1<r && l2<r && l3<r && (2*f1<r || 2*f2<r || 2*f3<r || 2*R<r))
+        if(l1<2*r && l2<2*r && l3<2*r && (f1<r || f2<r || f3<r || R<r))
           triangles.push([i,j,k]);
       }
   return triangles;
@@ -149,8 +175,17 @@ function clear_canvas(context, canvas) {
 }
 
 function update() {
-  let lines     = get_lines(2*radius);
-  let triangles = get_triangles(2*radius)
+  let lines     = undefined; 
+  let triangles = undefined;
+  
+  if(is_cech_not_alpha){
+    lines = get_lines_cech(radius);
+    triangles = get_triangles_cech(radius);
+  } else {
+    lines = get_lines_alpha(radius);
+    triangles = get_triangles_alpha(radius);
+  }
+  
   clear_canvas(context1, canvas1);
   
   if(show_balls) {
@@ -177,7 +212,7 @@ function radius_plus_delta(delta) {
 document.addEventListener('keydown', function (event) {
   if(event.keyCode==49) {
     show_balls = !(show_balls);     
-    change_glyph(button);
+    change_glyph_btn1(button);
   }
 });
 
@@ -231,32 +266,23 @@ canvas1.addEventListener('mousemove', function(event) {
     let y = event.offsetY;
     vertices[current_point].x = x; 
     vertices[current_point].y = y; 
-    L_data = get_barcodes(create_filtration());
+    alpha_filtration = create_filtration();
+    L_data = get_barcodes(alpha_filtration);
   }
 });
 
-button.addEventListener('click', function(event) {
-  show_balls = !(show_balls);  
-  change_glyph(button);
-});
-
-function change_glyph(button) {
-  if(show_balls)
-    button.style.backgroundImage = `url("./btn_1_on.png")`;
-  else
-    button.style.backgroundImage = `url("./btn_1_off.png")`;
-}
-
 function add_point(x,y) {
   vertices.push(new Vertice(x,y));
-  L_data = get_barcodes(create_filtration());
+  alpha_filtration = create_filtration()
+  L_data = get_barcodes(alpha_filtration);
 }
 
 function delete_vertice(i) {
   if(i+1!=vertices.length) 
       [vertices[i], vertices[vertices.length-1]] = [vertices[vertices.length-1], vertices[i]];
   vertices.splice(-1);
-  L_data = get_barcodes(create_filtration());
+  alpha_filtration = create_filtration()
+  L_data = get_barcodes(alpha_filtration);
 }
 
 canvas1.addEventListener('dblclick', function(event) {
@@ -270,12 +296,14 @@ canvas1.addEventListener('dblclick', function(event) {
 });
 
 function draw_betti_curves(context, canvas, RB) {
+  const red = RB[0].data;
+  const blue = RB[1].data;
   const x_off       = canvas_setup.x_off;
   const y_off       = canvas_setup.y_off;
   const r_max       = canvas_setup.r_max;
   const x_ticks     = 10;
-  const y_ticks     = vertices.length+1;
-  const y_max       = vertices.length+1;
+  const y_max       = 1+Math.max(RB[0].max, RB[1].max);
+  const y_ticks     = y_max;
   const width_off   = canvas.width-x_off;
   const height_off  = canvas.height-y_off;
  
@@ -287,36 +315,38 @@ function draw_betti_curves(context, canvas, RB) {
   context.lineWidth = 1; // draw red curve
   const n = canvas_setup.n;
   const x_delta = canvas_setup.r_max/n;
-  const red = RB[0];
-  const blue = RB[1];
-  let red_accum = red[0];
-  let blue_accum = blue[0];
-  let x = 0;
+
   context.strokeStyle = red_curve_color;
   context.beginPath();
-  context.moveTo(x_off, parseInt(canvas.height-y_off-red_accum*height_off/y_ticks)); 
-  for(let i=1; i<red.length; ++i) {    
-    context.lineTo(parseInt(x_off+(width_off/r_max)*x), parseInt(canvas.height-y_off-red_accum*height_off/y_ticks));   
-    red_accum += red[i];
-    x = parseInt(i*x_delta);  
+  let y_prev = red[0][1];
+  context.moveTo(x_off, Math.round(canvas.height-y_off-y_prev*height_off/y_ticks)); 
+  for(let i=0; i<red.length; ++i) {    
+    let x_curr = Math.round(red[i][0]);
+    let y_curr = red[i][1];
+    context.lineTo(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_prev*height_off/y_ticks));   
+    context.lineTo(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_curr*height_off/y_ticks)); 
+    y_prev = y_curr;
     context.stroke();
   } 
   context.closePath();
 
-  x = 0;
-  context.lineWidth = 1;    // draw blue curve
-  context.strokeStyle = blue_curve_color;
-  context.beginPath();
-  context.moveTo(x_off, parseInt(canvas.height-y_off-blue_accum*height_off/y_ticks)); 
-  for(let i=1; i<blue.length; ++i) {    
-    context.lineTo(parseInt(x_off+(width_off/r_max)*x), parseInt(canvas.height-y_off-blue_accum*height_off/y_ticks));  
-    x = parseInt((i-0.5)*x_delta);  
-    context.lineTo(parseInt(x_off+(width_off/r_max)*x), parseInt(canvas.height-y_off-blue_accum*height_off/y_ticks));
-    x = parseInt(i*x_delta);
-    blue_accum += blue[i]; 
-    context.stroke();
-  } 
-  context.closePath();
+  if(blue.length>0) {
+    if(blue[blue.length-1][1]==0) blue.push([canvas_setup.r_max,0]);
+    context.strokeStyle = blue_curve_color;
+    context.beginPath();
+    y_prev = 0;
+    context.moveTo(x_off, Math.round(canvas.height-y_off-y_prev*height_off/y_ticks)); 
+    
+    for(let i=0; i<blue.length; ++i) {    
+      let x_curr = Math.round(blue[i][0]);
+      let y_curr = blue[i][1];
+      context.lineTo(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_prev*height_off/y_ticks));   
+      context.lineTo(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_curr*height_off/y_ticks)); 
+      y_prev = y_curr;
+      context.stroke();
+    } 
+    context.closePath();
+  }
 }
 
 function draw_betti_histograms(context, canvas, L) { 
@@ -330,15 +360,23 @@ function draw_betti_histograms(context, canvas, L) {
   draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r"  });
   draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : 0, "y_max" : 0, "label" : "birth/death"  });
   
-  const n     = canvas_setup.n;
-  const h     = 2;
-  const delta = 5;
+  let red  = L[0];
+  let blue = L[1];
+  let h     = 2;
+  let  delta = 5;
   let y       = 5;
-  let red     = L[0];
+
+  if(red.size + blue.size >25)
+  {
+    h     = 1;
+    delta = 2;
+    y     = 2;
+  }
+
 
   for(let key of red)  {
-    let start = (canvas.width-x_off)*(key[0]*r_max/n)/r_max;
-    let end = (canvas.width-x_off)*(key[1]*r_max/n)/r_max;
+    let start = (canvas.width-x_off)*key[0]/r_max;
+    let end = (canvas.width-x_off)*key[1]/r_max;
     context.beginPath();
     context.fillStyle = red_histo_color;
     context.moveTo(x_off+start,   y_off+y);
@@ -351,10 +389,9 @@ function draw_betti_histograms(context, canvas, L) {
     y += h+delta;
   }
 
-  let blue = L[1];
   for(let key of blue) {
-    let start = (canvas.width-x_off)*(key[0]*r_max/n)/r_max;
-    let end = (canvas.width-x_off)*(key[1]*r_max/n)/r_max;
+    let start = (canvas.width-x_off)*key[0]/r_max;
+    let end = (canvas.width-x_off)*key[1]/r_max;
     context.beginPath();
     context.fillStyle = blue_histo_color;
     context.moveTo(x_off+start,   y_off+y);
@@ -448,48 +485,69 @@ function draw_y_axis(context, canvas, params) {
   context.closePath();  
 }
 
+
 function create_filtration()
 {
-  const n = canvas_setup.n;
-  let pre_filtration = new Array(n);
-  for(let i=0; i<pre_filtration.length; ++i)  
-    pre_filtration[i] = new Array();
+  // send data there;
+  coords = [];
+  for(let i = 0; i < vertices.length; ++i)
+  {
+    coords.push(vertices[i].x);
+    coords.push(vertices[i].y);
+  }
+  let delaunator = new Delaunator(coords);
 
-  for(let i=0; i<vertices.length; ++i)  
-    pre_filtration[0].push([i]);
+  //get data from there
+  let simplex_data = [];
 
-  let r_max = canvas_setup.r_max;
-  let delta_r = r_max/n;
-  for(let i=0; i<vertices.length; ++i)  
-    for(let j=i+1; j<vertices.length; ++j) {
-      let r_critical = Math.sqrt(get_distance(vertices[i], vertices[j]))/2;
-      let index = Math.ceil(r_critical/delta_r);
-      if(index<pre_filtration.length)
-        pre_filtration[index].push([i,j]);
+  const r_crit_triag = (indices) => {
+    const [i, j, k] = indices;
+    const l1 = Math.sqrt(get_distance(vertices[i], vertices[j]));
+    const l2 = Math.sqrt(get_distance(vertices[j], vertices[k]));
+    const l3 = Math.sqrt(get_distance(vertices[i], vertices[k]));
+    const p = l1 + l2 + l3;
+    const R = l1 * l2 * l3 / Math.sqrt(p * (p - 2 * l1) * (p - 2 * l2)*(p - 2 * l3));
+    const f1 = Math.sqrt(get_distance(vertices[i], new Vertice((vertices[j].x + vertices[k].x) / 2, (vertices[j].y + vertices[k].y) / 2)));
+    const f2 = Math.sqrt(get_distance(vertices[j], new Vertice((vertices[i].x + vertices[k].x) / 2, (vertices[i].y + vertices[k].y) / 2)));
+    const f3 = Math.sqrt(get_distance(vertices[k], new Vertice((vertices[i].x + vertices[j].x) / 2, (vertices[i].y + vertices[j].y) / 2)));
+    const r_critical = Math.max(Math.min(R, f1, f2, f3), l1/2, l2/2, l3/2);
+    return r_critical; 
+  }
+  for (let idx = 0; idx < delaunator.triangles.length; idx += 3) {
+    let indices = [delaunator.triangles[idx], delaunator.triangles[idx + 1], delaunator.triangles[idx + 2]];
+    const r_crit = r_crit_triag(indices);
+    indices.sort(function(i, j) { return i - j; });
+    simplex_data.push([indices, r_crit]);
   }
 
-  for(let i=0; i<vertices.length; ++i)  
-    for(let j=i+1; j<vertices.length; ++j) 
-      for(let k=j+1; k<vertices.length; ++k) {
-        let l1 = Math.sqrt(get_distance(vertices[i], vertices[j]));
-        let l2 = Math.sqrt(get_distance(vertices[j], vertices[k]));
-        let l3 = Math.sqrt(get_distance(vertices[i], vertices[k]));
-        let p = l1+l2+l3;
-        let R = l1*l2*l3 / Math.sqrt(p*(p-2*l1)*(p-2*l2)*(p-2*l3));
-        let f1 = Math.sqrt(get_distance(vertices[i], new Vertice((vertices[j].x+vertices[k].x)/2, (vertices[j].y+vertices[k].y)/2)));
-        let f2 = Math.sqrt(get_distance(vertices[j], new Vertice((vertices[i].x+vertices[k].x)/2, (vertices[i].y+vertices[k].y)/2)));
-        let f3 = Math.sqrt(get_distance(vertices[k], new Vertice((vertices[i].x+vertices[j].x)/2, (vertices[i].y+vertices[j].y)/2)));
-        let r_critical = Math.max(Math.min(R, f1, f2, f3), l1/2, l2/2, l3/2);
-        let index = Math.ceil(r_critical/delta_r);
-        if(index<pre_filtration.length)
-          pre_filtration[index].push([i,j,k]);
+  const r_crit_edge = (indices) => {
+    const [i, j] = indices;
+    const r_critical = Math.sqrt(get_distance(vertices[i], vertices[j])) / 2.0;
+    return r_critical;
+  }
+  const next_half_edge = (e) => {return (e % 3 === 2) ? e - 2 : e + 1;};
+  edge_indices = [];
+  for (let e = 0; e < delaunator.triangles.length; e++)
+    if (e > delaunator.halfedges[e])
+    {
+      let indices = [delaunator.triangles[e], delaunator.triangles[next_half_edge(e)]];
+      indices.sort(function(i, j) { return i - j; });
+      const r_crit = r_crit_edge(indices);
+      simplex_data.push([indices, r_crit]);
     }
-    let filtration = []; 
-    for(let i=0; i<pre_filtration.length; ++i)
-      for(let j=0; j<pre_filtration[i].length; ++j){
-        filtration.push([pre_filtration[i][j],i])    
-    }
-    return filtration;
+
+  for (let i = 0; i < vertices.length; ++i)
+    simplex_data.push([[i], 0.0]);
+
+  const epsilon = 0.001;
+  simplex_data.sort(function(sx, sy) {
+    if (epsilon < sy[1] - sx[1]) { return -1; }
+    if (sx[1] - sy[1] > epsilon) { return 1;  }
+    if (sx[0].length > sy[0].length) { return 1; }
+    if (sx[0].length < sy[0].length) { return -1; }
+    return 0;
+  });  
+  return simplex_data;
 }
 
 function calculate_simplex_boundary(simplex) {
@@ -513,10 +571,8 @@ function get_max_index(filtration_set, span) {
 
 // algo from the paper https://geometry.stanford.edu/papers/zc-cph-05/zc-cph-05.pdf
 function get_barcodes(filtration) {
-  const n    = canvas_setup.n;
-  let L    = [new Set(), new Set(), new Set()];
-  let red  = new Array(n+1).fill(0);
-  let blue = new Array(n+1).fill(0);
+  const n = canvas_setup.n;
+  let L   = [new Set(), new Set(), new Set()];
 
   let filtration_set = {};
   for(let i=0; i<filtration.length; ++i)
@@ -545,20 +601,38 @@ function get_barcodes(filtration) {
     if(M[j]==true && D[j]==undefined) {
       let k = simplex.length-1;
        if(k==0)
-        L[k].add([filtration[j][1], canvas_setup.r_max]);
+        L[k].add([filtration[j][1], canvas_setup.r_max+10]);
     }
   }
 
-  for (let key of L[0]) {
-    red[key[0]] +=1;
-    red[key[1]] -=1;
-  }
+  let red  = create_curve(L[0]);
+  let blue = create_curve(L[1]); 
 
-  for (let key of L[1]) {
-    blue[key[0]] +=1;
-    blue[key[1]] -=1;
-  }
   return [L, red, blue];
+}
+
+function create_curve(L) {
+  let out = [];
+  let temp = [];
+  
+  for (let key of L) {
+    temp.push([key[0], 1]);
+    temp.push([key[1], -1]);
+  }
+  temp.sort((x,y)=>x[0]-y[0]);
+  let M = 0;
+  let acc = 0;
+  for (let i=0; i<temp.length; ) {
+    acc += temp[i][1];
+    let j=i+1;
+    for ( ; j<temp.length && temp[i][0]==temp[j][0]; ++j) {
+      acc += temp[i][1];
+    }
+    out.push([temp[i][0], acc]);
+    M=Math.max(M, acc)
+    i = j;
+  }
+  return {"data" : out, "max": M};
 }
 
 function remove_pivot_rows(filtration, filtration_set, M, D, j) {
@@ -625,5 +699,33 @@ function add_spans(span1, span2) {
   }
   return span;
 }
+
+btn1.addEventListener('click', function(event) {
+  show_balls = !(show_balls);  
+  change_glyph_btn1();
+});
+
+btn2.addEventListener('click', function(event) {
+  is_cech_not_alpha = !(is_cech_not_alpha);  
+  change_glyph_btn2();
+});
+
+
+function change_glyph_btn1() {
+  if(show_labels==true)
+    btn1.style.backgroundImage = `url("./btn_1_on.png")`;
+  else
+    btn1.style.backgroundImage = `url("./btn_1_off.png")`;
+}
+
+
+function change_glyph_btn2() {
+  if(is_cech_not_alpha==true)
+    btn2.style.backgroundImage = `url("./btn_2_on.png")`;
+  else
+    btn2.style.backgroundImage = `url("./btn_2_off.png")`;
+}
+
+
 
 update();
