@@ -38,7 +38,7 @@ let alpha_filtration = undefined;
 let show_balls = true;
 let is_cech_not_alpha = true;
 
-const canvas_setup = {"r_max" : 150, "x_off" : 30, "y_off" : 30, "n" : 50}; 
+const canvas_setup = {"r_max" : 100, "x_off" : 30, "y_off" : 30, "n" : 50}; 
 
 class Vertice {
   constructor(x, y) {
@@ -488,6 +488,17 @@ function draw_y_axis(context, canvas, params) {
 
 function create_filtration()
 {
+  let simplex_data = [];
+
+  // edgecase 2 vertices
+  if (vertices.length <= 3) {
+    for (let i = 0; i < vertices.length; ++i)
+      simplex_data.push([[i], 0.0]);
+    if (vertices.length == 2)
+      simplex_data.push([[0, 1], Math.sqrt(get_distance(vertices[0], vertices[1]))]);
+    return simplex_data;
+  }
+
   // send data there;
   coords = [];
   for(let i = 0; i < vertices.length; ++i)
@@ -498,8 +509,6 @@ function create_filtration()
   let delaunator = new Delaunator(coords);
 
   //get data from there
-  let simplex_data = [];
-
   const r_crit_triag = (indices) => {
     const [i, j, k] = indices;
     const l1 = Math.sqrt(get_distance(vertices[i], vertices[j]));
@@ -712,7 +721,7 @@ btn2.addEventListener('click', function(event) {
 
 
 function change_glyph_btn1() {
-  if(show_labels==true)
+  if(show_balls==true)
     btn1.style.backgroundImage = `url("./btn_1_on.png")`;
   else
     btn1.style.backgroundImage = `url("./btn_1_off.png")`;
