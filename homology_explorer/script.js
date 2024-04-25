@@ -1,6 +1,11 @@
 let canvas = document.getElementById("canvas");
 let output = document.getElementById("output");
 let context = canvas.getContext("2d");
+
+let button1 = document.getElementsByClassName("btn1")[0];
+let button2 = document.getElementsByClassName("btn2")[0];
+let button3 = document.getElementsByClassName("btn3")[0];
+
 let my_green = "rgb(144, 238, 144, 0.4)";
 let my_coral = "rgb(240, 128, 128, 0.9)";
 let my_grey = "rgb(211, 211, 211, 0.4)";
@@ -392,12 +397,16 @@ function split(v) {
 }
 
 document.addEventListener('keydown', function (event) {
-  if(event.keyCode==49)
+  if(event.keyCode==49){
     show_labels = !(show_labels);
-  if(event.keyCode==50)
+    change_glyph_btn1();
+  } else if(event.keyCode==50) {
     show_negative = !(show_negative);
-  if(event.keyCode==51)
+    change_glyph_btn2();
+  } else if(event.keyCode==51) {
     show_connections = !(show_connections);
+    change_glyph_btn3();
+  }
 });
 
 canvas.addEventListener('mousedown', function(event) {
@@ -915,3 +924,41 @@ function recalculate_math() {
 }
 
 update();
+
+
+function change_glyph_btn1() {
+  if(show_labels==true)
+    button1.style.backgroundImage = `url("./btn_1_on.png")`;
+  else
+    button1.style.backgroundImage = `url("./btn_1_off.png")`;
+}
+
+
+function change_glyph_btn2() {
+  if(show_negative==true)
+    button2.style.backgroundImage = `url("./btn_2_off.png")`;
+  else
+    button2.style.backgroundImage = `url("./btn_2_on.png")`;
+}
+
+function change_glyph_btn3() {
+  if(show_connections==true)
+    button3.style.backgroundImage = `url("./btn_3_on.png")`;
+  else
+    button3.style.backgroundImage = `url("./btn_3_off.png")`;
+}
+
+button1.addEventListener('click', function(event) {
+  show_labels = !show_labels;
+  change_glyph_btn1();
+});
+
+button2.addEventListener('click', function(event) {
+  show_negative = !show_negative;
+  change_glyph_btn2();
+});
+
+button3.addEventListener('click', function(event) {
+  show_connections = !show_connections;
+  change_glyph_btn3();
+});

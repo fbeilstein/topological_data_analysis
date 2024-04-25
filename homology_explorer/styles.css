@@ -35,7 +35,6 @@ body{
 }
 
 #credits{
-    padding-top: 20px;
     padding-left: 20px;
     font-family: arial;
     font-size: 12px;
@@ -46,12 +45,45 @@ body{
 }
 
 #table{
-    padding-top: 10px;
     padding-left: 20px;
     text-align: center;
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
+}
+
+#buttons{
+    padding-top: 10px;
+    width: 550px;
+    display : flex;
+    flex-direction: row;
+    justify-content: right;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+
+.btn{
+    border-radius: 4px;
+    border: 1px solid gray;
+    height: 30px;
+    width: 30px;
+    background: white;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+.btn1{
+    background-image: url("./btn_1_on.png");
+}
+
+.btn2{
+    background-image: url("./btn_2_on.png");
+}
+
+.btn3{
+    background-image: url("./btn_3_off.png");
 }
 
 #table td {

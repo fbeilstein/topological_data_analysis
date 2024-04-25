@@ -2,18 +2,17 @@ const canvas1  = document.getElementById("canvas1");
 const canvas2  = document.getElementById("canvas2");
 const canvas3  = document.getElementById("canvas3");
 const output   = document.getElementById("output");
+const button   = document.getElementById("btn");
 const context1 = canvas1.getContext("2d");
 const context2 = canvas2.getContext("2d");
 const context3 = canvas3.getContext("2d");
 //colors
 const my_green   = "rgb(144, 238, 144, 0.4)";
 const my_coral   = "rgb(240, 128, 128, 0.2)";
-const my_coral2  = "rgb(240, 128, 128, 0.7)";
-const my_grey    = "rgb(211, 211, 211, 0.4)";
+const red_histo_color  = "rgb(240, 128, 128, 0.7)";
 const my_lightgray  = "rgb(211, 211, 211, 0.2)";
-const my_magenta = "rgb(139, 0, 139, 0.5)"
-const my_blue    = "rgb(135, 206, 250)"
-const show_balls = true;
+const scan_line_color = "rgb(139, 0, 139, 0.5)"
+const blue_histo_color    = "rgb(135, 206, 250)"
 const axis_ticks_labels_color = "lightgray";
 const red_curve_color = "lightcoral";
 const blue_curve_color ="DodgerBlue";
@@ -33,6 +32,7 @@ let current_point = -1;
 const RR = 19*19;
 let radius = 15;
 let L_data = undefined;
+let show_balls = true;
 const canvas_setup = {"r_max" : 250, "x_off" : 30, "y_off" : 30, "n" : 50}; 
 
 class Vertice {
@@ -175,8 +175,10 @@ function radius_plus_delta(delta) {
 }
 
 document.addEventListener('keydown', function (event) {
-  if(event.keyCode==49)
+  if(event.keyCode==49) {
     show_balls = !(show_balls);     
+    change_glyph(button);
+  }
 });
 
 document.addEventListener('mousewheel', function (event) {
@@ -232,6 +234,18 @@ canvas1.addEventListener('mousemove', function(event) {
     L_data = get_barcodes(create_filtration());
   }
 });
+
+button.addEventListener('click', function(event) {
+  show_balls = !(show_balls);  
+  change_glyph(button);
+});
+
+function change_glyph(button) {
+  if(show_balls)
+    button.style.backgroundImage = `url("./btn_1_on.png")`;
+  else
+    button.style.backgroundImage = `url("./btn_1_off.png")`;
+}
 
 function add_point(x,y) {
   vertices.push(new Vertice(x,y));
@@ -326,7 +340,7 @@ function draw_betti_histograms(context, canvas, L) {
     let start = (canvas.width-x_off)*(key[0]*r_max/n)/r_max;
     let end = (canvas.width-x_off)*(key[1]*r_max/n)/r_max;
     context.beginPath();
-    context.fillStyle = my_coral2;
+    context.fillStyle = red_histo_color;
     context.moveTo(x_off+start,   y_off+y);
     context.lineTo(x_off+end, y_off+y);
     context.lineTo(x_off+end, y_off+y+delta);
@@ -342,7 +356,7 @@ function draw_betti_histograms(context, canvas, L) {
     let start = (canvas.width-x_off)*(key[0]*r_max/n)/r_max;
     let end = (canvas.width-x_off)*(key[1]*r_max/n)/r_max;
     context.beginPath();
-    context.fillStyle = my_blue;
+    context.fillStyle = blue_histo_color;
     context.moveTo(x_off+start,   y_off+y);
     context.lineTo(x_off+end, y_off+y);
     context.lineTo(x_off+end, y_off+y+delta);
@@ -362,13 +376,13 @@ function draw_scanning_line(context, canvas, params) {
   const x_max   = params.x_max;
 
   context.lineWidth = 1;  // vertical scanning line
-  context.strokeStyle = my_magenta;
+  context.strokeStyle = scan_line_color;
   context.beginPath();
   context.moveTo(x_off+((canvas.width-x_off)/x_max)*radius, y_off);
   context.lineTo(x_off+((canvas.width-x_off)/x_max)*radius, canvas.height-y_off);
   context.stroke();
   context.closePath();
-  context.fillStyle = my_magenta;
+  context.fillStyle = scan_line_color;
   context.fillText(parseInt(radius), x_off-10+((canvas.width-x_off)/x_max)*radius, y_off-3);
 }
 
