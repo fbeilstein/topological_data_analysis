@@ -74,6 +74,10 @@ body{
     background-size: contain;
 }
 
+.btn:hover{
+    border: 1px solid black;
+}
+
 .btn1{
     background-image: url("./btn_1_on.png");
 }
