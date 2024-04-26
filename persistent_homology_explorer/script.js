@@ -519,11 +519,11 @@ function draw_y_axis(context, canvas, params) {
     context.strokeStyle = axis_ticks_labels_color;
     context.fillStyle = axis_ticks_labels_color;
     context.beginPath();
-    context.moveTo(x_off-tick_length, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
-    context.lineTo(x_off, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
+    context.moveTo(x_off-tick_length, canvas.height-y_off-(canvas.height-2*y_off)*i/y_ticks);
+    context.lineTo(x_off, canvas.height-y_off-(canvas.height-2*y_off)*i/y_ticks);
     context.stroke();
     if(draw_lines)
-      context.lineTo(canvas.width, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
+      context.lineTo(canvas.width, canvas.height-y_off-(canvas.height-2*y_off)*i/y_ticks);
     context.stroke();
     context.closePath();  
   }
