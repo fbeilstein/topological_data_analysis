@@ -1,24 +1,28 @@
+:root {
+ --width: 550px;
+ --height: 550px;
+}
+
 body{
     font-family: "sans-serif";
 }
 
 .container{
     padding-top: 20px;
-    display : flex;
+    display: flex;
     flex-direction: row;
 }
 
 #canvas1{
     border: 1px solid grey;
-    height: 550px;
-    width: 550px;
+    height: var(--height);
+    width: var(--width);
 }
 
 #canvas2{
-    padding-left: 20px;
     border: 1px solid grey;
-    height: 550px;
-    width: 550px;
+    height: var(--height);
+    width: var(--width);
     border : none;
 }
 
@@ -34,8 +38,12 @@ body{
     padding-top: 10px;
     display : flex;
     flex-direction: row;
-    width: 550px;
+     width: var(--width);
     justify-content: space-between;
+}
+
+.column2{
+    padding-left: 20px;
 }
 
 .buttons1{
@@ -45,7 +53,7 @@ body{
 }
 
 .buttons2{
-    width: 550px;
+    width: var(--width);
     padding-top: 10px;
     display : flex;
     flex-direction: row;
@@ -81,7 +89,7 @@ body{
 }
 
 #info{
-    width : 550px;
+    width: var(--width);
     padding-top: 10px;
     padding-left: 40px;
     font-family: arial;

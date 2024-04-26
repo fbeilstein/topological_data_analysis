@@ -16,7 +16,7 @@
 </head>
 <body>
     <div class="container">
-            <div>
+            <div id="column1">
                 <canvas id="canvas1"></canvas>  
                 <div id = "status">
                     <div id="stats">     
@@ -26,25 +26,24 @@
                         <button class="btn btn2"></button>
                     </div>
                 </div>       
+                <div id="info">
+                    Create/delete points with double click
+                    <br>
+                    Move points and change radii(mousewheel)
+                    <br>
+                    Drag the scanning(purple) line
+                    <br><br><br>
+                    Created by: <a id="href" href="https://www.researchgate.net/profile/Andrii-Khlevniuk">A.Khlevniuk</a>; <a id="href" href="https://www.researchgate.net/profile/Vitalii-Tymchyshyn-2">V.Tymchyshyn, PhD</a>
+                    <br>
+                    Powered by: <a id="href" href="https://github.com/mapbox/delaunator">Delaunator</a> 
+                </div>
             </div>
-            <div>
+            <div id="column2">
                 <canvas id="canvas2"></canvas>
                 <div class="buttons2">
                     <button class="btn btn3"></button>
                 </div>   
             </div>
-    </div>
-    </body>
-    <div id="info">
-        Create/delete points with double click
-        <br>
-        Move points and change radii(mousewheel)
-        <br>
-        Drag the scanning(purple) line
-        <br><br><br>
-        Created by: <a id="href" href="https://www.researchgate.net/profile/Andrii-Khlevniuk">A.Khlevniuk</a>; <a id="href" href="https://www.researchgate.net/profile/Vitalii-Tymchyshyn-2">V.Tymchyshyn, PhD</a>
-        <br>
-        Powered by: <a id="href" href="https://github.com/mapbox/delaunator">Delaunator</a> 
     </div>
     <script src="./script.js"></script>
 </body>
