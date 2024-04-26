@@ -3,35 +3,28 @@ body{
 }
 
 .container{
-    padding-top: 10px;
+    padding-top: 20px;
     display : flex;
     flex-direction: row;
 }
 
 #canvas1{
     border: 1px solid grey;
-    height: 410px;
-    width: 410px;
+    height: 550px;
+    width: 550px;
 }
 
 #canvas2{
-    border: 1px solid grey;
-    height: 410px;
-    width: 410px;
-    border : none;
-}
-
-#canvas3{
     padding-left: -5px;
     border: 1px solid grey;
-    height: 410px;
-    width: 410px;
+    height: 550px;
+    width: 550px;
     border : none;
 }
 
 .buttons{
     padding-top: 10px;
-    width: 410px;
+    width: 550px;
     display : flex;
     flex-direction: row;
     justify-content: right;
@@ -60,8 +53,12 @@ body{
     background-image: url("./btn_2_on.png");
 }
 
+.btn3{
+    background-image: url("./btn_3_0.png");
+}
+
 #info{
-    width : 410px;
+    width : 550px;
     padding-top: 10px;
     padding-left: 40px;
     font-family: arial;

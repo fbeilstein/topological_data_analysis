@@ -1,42 +1,43 @@
 const canvas1  = document.getElementById("canvas1");
 const canvas2  = document.getElementById("canvas2");
-const canvas3  = document.getElementById("canvas3");
 const output   = document.getElementById("output");
 const context1 = canvas1.getContext("2d");
 const context2 = canvas2.getContext("2d");
-const context3 = canvas3.getContext("2d");
 let btn1 = document.getElementsByClassName("btn1")[0];
 let btn2 = document.getElementsByClassName("btn2")[0];
+let btn3 = document.getElementsByClassName("btn3")[0];
 
 //colors
 const my_green   = "rgb(144, 238, 144, 0.4)";
 const my_coral   = "rgb(240, 128, 128, 0.2)";
+const my_red   = "rgb(240, 128, 128, 0.6)";
+const my_blue   = "rgb(30, 144, 255, 0.6)";
 const red_histo_color  = "rgb(240, 128, 128, 0.7)";
 const my_lightgray  = "rgb(211, 211, 211, 0.2)";
+const dead_zone_color  = "rgb(211, 211, 211)";
 const scan_line_color = "rgb(139, 0, 139, 0.5)"
 const blue_histo_color    = "DodgerBlue"
 const axis_ticks_labels_color = "lightgray";
 const red_curve_color = "lightcoral";
 const blue_curve_color ="DodgerBlue";
-const label_font  = "12px Verdana";
+const label_font  = "15px Verdana";
 
 canvas1.width  = 
 canvas1.height = 
 canvas2.width  = 
-canvas2.height = 
-canvas3.width  = 
-canvas3.height = parseInt(getComputedStyle(canvas1).getPropertyValue('width'));
+canvas2.height = parseInt(getComputedStyle(canvas1).getPropertyValue('width'));
 
 
 //globals
 let vertices = [];
 let current_point = -1;
 const RR = 19*19;
-let radius = 15;
+let radius = 70;
 let L_data = undefined;
 let alpha_filtration = undefined;
 let show_balls = true;
 let is_cech_not_alpha = true;
+let out_mode = 0;
 
 const canvas_setup = {"r_max" : 100, "x_off" : 30, "y_off" : 30, "n" : 50}; 
 
@@ -136,7 +137,7 @@ function draw_points(context) {
     for(let i=0; i<vertices.length; ++i) {
       context.beginPath();
       context.fillStyle = 'gray';
-      context.arc(vertices[i].x, vertices[i].y, 3, 0, 2*Math.PI);   
+      context.arc(vertices[i].x, vertices[i].y, 5, 0, 2*Math.PI);   
       context.fill();
       context.closePath();
   } 
@@ -198,8 +199,12 @@ function update() {
   draw_points(context1);
 
   if(L_data != undefined) {
-    draw_betti_curves(context2, canvas2, [L_data[1], L_data[2]]);
-    draw_betti_histograms(context3, canvas3, L_data[0])
+    if(out_mode==0)
+      draw_betti_curves(context2, canvas2, [L_data[1], L_data[2]]);
+    else if(out_mode==1)
+      draw_betti_histograms(context2, canvas2, L_data[0]);
+    else
+      draw_betti_persistence(context2, canvas2, L_data[0])
   }
   requestAnimationFrame(update);
 }
@@ -231,29 +236,15 @@ canvas1.addEventListener('mouseup', function(event) {
 });
 
 canvas2.addEventListener('mousemove', function(event) {
-  if(event.buttons==1) {
-    move_scanning_line(canvas3, event);
+  if(event.buttons==1 && out_mode<2) {
+    move_scanning_line(canvas2, event);
   }
-});
-
-canvas2.addEventListener('mouseup', function(event) {
-  move_scanning_line(canvas2, event);
-});
-
-canvas3.addEventListener('mousemove', function(event) {
-  if(event.buttons==1) {
-    move_scanning_line(canvas3, event);
-  }
-});
-
-canvas3.addEventListener('mouseup', function(event) {
-  move_scanning_line(canvas3, event);
 });
 
 function move_scanning_line(canvas, event) {
   let x = event.offsetX;
   let y = event.offsetY;
-  let padding = parseInt(getComputedStyle(canvas3).getPropertyValue('padding-left'));
+  let padding = parseInt(getComputedStyle(canvas).getPropertyValue('padding-left'));
   radius = canvas_setup.r_max * Math.max(0, x - padding-canvas_setup.x_off)/(canvas2.width-canvas_setup.x_off);
 }
 
@@ -308,8 +299,8 @@ function draw_betti_curves(context, canvas, RB) {
   const height_off  = canvas.height-y_off;
  
   clear_canvas(context, canvas);
-  draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r" });
-  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : y_ticks, "y_max" : y_max, "label" : "betti numbers" });
+  draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r", "draw_lines" : false });
+  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : y_ticks, "y_max" : y_max, "label" : "betti numbers", "draw_lines" : true });
   draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
  
   context.lineWidth = 1; // draw red curve
@@ -357,21 +348,16 @@ function draw_betti_histograms(context, canvas, L) {
   const r_max = canvas_setup.r_max;
   const x_ticks = 10;
 
-  draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r"  });
-  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : 0, "y_max" : 0, "label" : "birth/death"  });
+  draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r", "draw_lines" : false  });
+  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : 0, "y_max" : 0, "label" : "pers. barcodes", "draw_lines" : false  });
   
   let red  = L[0];
   let blue = L[1];
-  let h     = 2;
-  let  delta = 5;
-  let y       = 5;
-
-  if(red.size + blue.size >25)
-  {
-    h     = 1;
-    delta = 2;
-    y     = 2;
-  }
+  const n_bars = red.size + blue.size;
+  const scale = (Math.ceil(n_bars/30));
+  let h       =  5/scale;
+  let delta   = 10/scale;
+  let y       = 10/scale;
 
 
   for(let key of red)  {
@@ -394,11 +380,11 @@ function draw_betti_histograms(context, canvas, L) {
     let end = (canvas.width-x_off)*key[1]/r_max;
     context.beginPath();
     context.fillStyle = blue_histo_color;
-    context.moveTo(x_off+start,   y_off+y);
-    context.lineTo(x_off+end, y_off+y);
-    context.lineTo(x_off+end, y_off+y+delta);
-    context.lineTo(x_off+start,   y_off+y+delta);
-    context.lineTo(x_off+start,   y_off+y);
+    context.moveTo(x_off+start, y_off+y);
+    context.lineTo(x_off+end,   y_off+y);
+    context.lineTo(x_off+end,   y_off+y+delta);
+    context.lineTo(x_off+start, y_off+y+delta);
+    context.lineTo(x_off+start, y_off+y);
     context.fill();
     context.closePath();
     y += h+delta;
@@ -406,6 +392,49 @@ function draw_betti_histograms(context, canvas, L) {
   draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
 }
 
+function draw_betti_persistence(context, canvas, L) { 
+  clear_canvas(context, canvas);
+  if(L==undefined) return;
+  const x_off = canvas_setup.x_off;
+  const y_off = canvas_setup.y_off;
+  const r_max = canvas_setup.r_max;
+  const x_ticks = 10;
+
+  draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r", "draw_lines" : true  });
+  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : x_ticks, "y_max" : r_max, "label" : "pers. diagram", "draw_lines" : true  });
+  
+  let red  = L[0];
+  let blue = L[1];
+
+  context.fillStyle = dead_zone_color;  //draw dead zone
+  context.beginPath();
+  context.moveTo(x_off, canvas.height-y_off); 
+  context.lineTo(canvas.width, y_off); 
+  context.lineTo(canvas.width, canvas.height-y_off); 
+  context.lineTo(x_off, canvas.height-y_off); 
+  context.fill();
+  context.closePath();
+
+  for(let key of red)  {
+    let start = x_off+(canvas.width-x_off)*key[0]/r_max;
+    let end = canvas.height-y_off-(canvas.height-2*y_off)*key[1]/r_max;
+    context.beginPath();
+    context.fillStyle = my_red;
+    context.arc(start, end, 5, 0, 2*Math.PI);   
+    context.fill();
+    context.closePath();
+  }
+
+  for(let key of blue) {
+    let start = x_off+(canvas.width-x_off)*key[0]/r_max;
+    let end = canvas.height-y_off-(canvas.height-2*y_off)*key[1]/r_max;
+    context.beginPath();
+    context.fillStyle = my_blue;
+    context.arc(start, end, 5, 0, 2*Math.PI);   
+    context.fill();
+    context.closePath();
+  }
+}
 
 function draw_scanning_line(context, canvas, params) {
   const x_off   = params.x_off;
@@ -429,6 +458,7 @@ function draw_x_axis(context, canvas, params) {
   let y_off   = params.y_off;
   let x_max   = params.x_max;
   let tick_length = y_off/4;
+  const draw_lines = params.draw_lines;
 
   for(let i=0; i<x_ticks; ++i) { //draw x-ticks and labels
     context.strokeStyle = axis_ticks_labels_color;
@@ -438,6 +468,9 @@ function draw_x_axis(context, canvas, params) {
     context.fillStyle = axis_ticks_labels_color;
     context.font = label_font;
     context.fillText((x_max*i/x_ticks).toString(), x_off-15+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off/4);
+    context.stroke();
+    if(draw_lines)
+      context.lineTo(x_off+(canvas.width - x_off)*i/x_ticks, y_off);
     context.stroke();
     context.closePath();  
   }
@@ -457,6 +490,7 @@ function draw_y_axis(context, canvas, params) {
   const y_off   = params.y_off;
   const y_max   = params.y_max;
   const tick_length = x_off/4;
+  const draw_lines = params.draw_lines;
 
   context.lineWidth = 1;
   for(let i=0; i<y_ticks; ++i) { //draw y-ticks and labels
@@ -466,7 +500,8 @@ function draw_y_axis(context, canvas, params) {
     context.lineTo(x_off, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
     context.strokeStyle = my_lightgray;
     context.stroke();
-    context.lineTo(canvas.width, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
+    if(draw_lines)
+      context.lineTo(canvas.width, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
     context.stroke();
     context.fillStyle = axis_ticks_labels_color;
     context.font = label_font;
@@ -491,11 +526,11 @@ function create_filtration()
   let simplex_data = [];
 
   // edgecase 2 vertices
-  if (vertices.length <= 3) {
+  if (vertices.length <= 2) {
     for (let i = 0; i < vertices.length; ++i)
       simplex_data.push([[i], 0.0]);
     if (vertices.length == 2)
-      simplex_data.push([[0, 1], Math.sqrt(get_distance(vertices[0], vertices[1]))]);
+      simplex_data.push([[0, 1], Math.sqrt(get_distance(vertices[0], vertices[1]))/2]);
     return simplex_data;
   }
 
@@ -580,6 +615,8 @@ function get_max_index(filtration_set, span) {
 
 // algo from the paper https://geometry.stanford.edu/papers/zc-cph-05/zc-cph-05.pdf
 function get_barcodes(filtration) {
+  console.log('filtration: ', filtration);
+
   const n = canvas_setup.n;
   let L   = [new Set(), new Set(), new Set()];
 
@@ -616,6 +653,8 @@ function get_barcodes(filtration) {
 
   let red  = create_curve(L[0]);
   let blue = create_curve(L[1]); 
+
+  console.log(L, red, blue);
 
   return [L, red, blue];
 }
@@ -720,6 +759,12 @@ btn2.addEventListener('click', function(event) {
 });
 
 
+btn3.addEventListener('click', function(event) {
+  out_mode = (out_mode+1)%3;
+  change_glyph_btn3();
+});
+
+
 function change_glyph_btn1() {
   if(show_balls==true)
     btn1.style.backgroundImage = `url("./btn_1_on.png")`;
@@ -735,6 +780,13 @@ function change_glyph_btn2() {
     btn2.style.backgroundImage = `url("./btn_2_off.png")`;
 }
 
-
+function change_glyph_btn3() {
+  if(out_mode==0)
+    btn3.style.backgroundImage = `url("./btn_3_0.png")`;
+  else if(out_mode==1)
+    btn3.style.backgroundImage = `url("./btn_3_1.png")`;
+  else
+    btn3.style.backgroundImage = `url("./btn_3_2.png")`;
+}
 
 update();
