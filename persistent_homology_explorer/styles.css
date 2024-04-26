@@ -27,6 +27,8 @@ body{
 }
 
 #stats{
+   display: grid;
+   align-items: center;
    font-family: Verdana;
    font-size: 14px;
    -webkit-user-select: none; /* Safari */
@@ -35,10 +37,10 @@ body{
 }
 
 #status {
-    padding-top: 10px;
+    padding-top: 5px;
     display : flex;
     flex-direction: row;
-     width: var(--width);
+    width: var(--width);
     justify-content: space-between;
 }
 
@@ -54,7 +56,7 @@ body{
 
 .buttons2{
     width: var(--width);
-    padding-top: 10px;
+    padding-top: 5px;
     display : flex;
     flex-direction: row;
     justify-content: flex-end;
