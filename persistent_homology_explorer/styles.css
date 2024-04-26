@@ -38,7 +38,15 @@ body{
     justify-content: space-between;
 }
 
-.buttons{
+.buttons1{
+    display : flex;
+    flex-direction: row;
+    justify-content: right;
+}
+
+.buttons2{
+    width: 550px;
+    padding-top: 10px;
     display : flex;
     flex-direction: row;
     justify-content: right;
