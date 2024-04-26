@@ -22,6 +22,7 @@ const axis_ticks_labels_color = "lightgray";
 const red_curve_color = "red";
 const blue_curve_color = "rgb(0, 70, 255)";
 const label_font  = "14px Verdana";
+const n_points = 100;
 
 canvas1.width  = 
 canvas1.height = 
@@ -40,7 +41,7 @@ let show_balls = true;
 let is_cech_not_alpha = true;
 let out_mode = 0;
 
-const canvas_setup = {"r_max" : 170, "x_off" : 30, "y_off" : 30, "n" : 50}; 
+const canvas_setup = {"r_max" : 140, "x_off" : 30, "y_off" : 30, "n" : 50}; 
 
 class Vertice {
   constructor(x, y) {
@@ -209,7 +210,7 @@ function update() {
             draw_betti_histograms(context2, canvas2, L_data[0]);
             break;
       case 2:
-        draw_betti_persistence(context2, canvas2, L_data[0]);
+            draw_betti_persistence(context2, canvas2, L_data[0]);
             break;
     }
   }
@@ -222,12 +223,21 @@ function radius_plus_delta(delta) {
 }
 
 document.addEventListener('keydown', function (event) {
-  if(event.keyCode==49) {
-    show_balls = !(show_balls);     
-    change_glyph_btn1(button);
+  if(event.key=="1") {
+    console.log("1")
+    out_mode = 0;
+    change_glyph_btn3();
+  } else if (event.key=="2") {
+    console.log("2")
+    out_mode = 1;
+    change_glyph_btn3();
+  } else if (event.key=="3") {
+    console.log("3")
+    out_mode = 2;
+    change_glyph_btn3();
+  } else if(event.key=="r") {
+    create_random_points(n_points);
   }
-  if(event.key=="r")
-    create_random_points(100);
 });
 
 document.addEventListener('mousewheel', function (event) {
@@ -308,6 +318,7 @@ canvas1.addEventListener('dblclick', function(event) {
 });
 
 function draw_betti_curves(context, canvas, RB) {
+  console.log("RB", RB)
   const red = RB[0].data;
   const blue = RB[1].data;
   const x_off       = canvas_setup.x_off;
@@ -317,7 +328,7 @@ function draw_betti_curves(context, canvas, RB) {
   const y_max       = 1+Math.max(RB[0].max, RB[1].max);
   const y_ticks     = y_max;
   const width_off   = canvas.width-x_off;
-  const height_off  = canvas.height-y_off;
+  const height_off  = canvas.height-2*y_off;
  
   clear_canvas(context, canvas);
   draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r", "draw_lines" : false });
