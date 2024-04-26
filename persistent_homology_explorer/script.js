@@ -7,6 +7,8 @@ const context2 = canvas2.getContext("2d");
 let btn1 = document.getElementsByClassName("btn1")[0];
 let btn2 = document.getElementsByClassName("btn2")[0];
 let btn3 = document.getElementsByClassName("btn3")[0];
+let btn_up = document.getElementsByClassName("btn_up")[0];
+let btn_down = document.getElementsByClassName("btn_down")[0];
 
 //colors
 const my_green   = "rgb(144, 238, 144, 0.4)";
@@ -41,7 +43,7 @@ let show_balls = true;
 let is_cech_not_alpha = true;
 let out_mode = 0;
 
-const canvas_setup = {"r_max" : 140, "x_off" : 30, "y_off" : 30, "n" : 50}; 
+let canvas_setup = {"r_max" : 140, "x_off" : 35, "y_off" : 35, "n" : 50}; 
 
 class Vertice {
   constructor(x, y) {
@@ -202,6 +204,8 @@ function update() {
 
   if(L_data != undefined) {
     btn3.style.display = "block";
+    btn_up.style.display = "block";
+    btn_down.style.display = "block";
     switch (out_mode) {
       case 0:
             draw_betti_curves(context2, canvas2, [L_data[1], L_data[2]]);
@@ -224,15 +228,12 @@ function radius_plus_delta(delta) {
 
 document.addEventListener('keydown', function (event) {
   if(event.key=="1") {
-    console.log("1")
     out_mode = 0;
     change_glyph_btn3();
   } else if (event.key=="2") {
-    console.log("2")
     out_mode = 1;
     change_glyph_btn3();
   } else if (event.key=="3") {
-    console.log("3")
     out_mode = 2;
     change_glyph_btn3();
   } else if(event.key=="r") {
@@ -318,7 +319,6 @@ canvas1.addEventListener('dblclick', function(event) {
 });
 
 function draw_betti_curves(context, canvas, RB) {
-  console.log("RB", RB)
   const red = RB[0].data;
   const blue = RB[1].data;
   const x_off       = canvas_setup.x_off;
@@ -332,7 +332,7 @@ function draw_betti_curves(context, canvas, RB) {
  
   clear_canvas(context, canvas);
   draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r", "draw_lines" : false });
-  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : y_ticks, "y_max" : y_max, "label" : "betti curves", "draw_lines" : true });
+  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : y_ticks, "y_max" : y_max, "label" : "betti curves", "draw_lines" : true, "y_labels" : Math.min(y_max, 30) });
   draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
  
   context.lineWidth = 1; // draw red curve
@@ -433,7 +433,7 @@ function draw_betti_persistence(context, canvas, L) {
   const x_ticks = 10;
 
   draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r", "draw_lines" : true  });
-  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : x_ticks, "y_max" : r_max, "label" : "pers. diagram", "draw_lines" : true  });
+  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : x_ticks, "y_max" : r_max, "label" : "pers. diagram", "draw_lines" : true,  "y_labels" : 10  });
   
   let red  = L[0];
   let blue = L[1];
@@ -499,7 +499,7 @@ function draw_x_axis(context, canvas, params) {
     context.moveTo(x_off+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off+tick_length);
     context.lineTo(x_off+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off);
     context.font = label_font;
-    context.fillText((x_max*i/x_ticks).toString(), x_off-15+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off/4);
+    context.fillText((Math.round(x_max*i/x_ticks)).toString(), x_off-15+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off/4);
     context.stroke();
     if(draw_lines)
       context.lineTo(x_off+(canvas.width - x_off)*i/x_ticks, y_off);
@@ -521,7 +521,7 @@ function draw_y_axis(context, canvas, params) {
   const x_off   = params.x_off;
   const y_off   = params.y_off;
   const y_max   = params.y_max;
-  const y_labels = Math.min(y_max, 30);
+  const y_labels = params.y_labels;
   const tick_length = x_off/4;
   const draw_lines = params.draw_lines;
 
@@ -541,12 +541,13 @@ function draw_y_axis(context, canvas, params) {
 
   context.font = label_font;
   let delta = y_max/y_labels;
+  context.beginPath();
   for(let i=0; i<y_labels; ++i) {
-    context.beginPath();
-    context.fillText(parseInt(Math.ceil(delta*i)).toString(), x_off/9, canvas.height+5-y_off-(canvas.height-y_off)*delta*i/y_ticks);
+    context.fillText(parseInt(Math.ceil(delta*i)).toString(), 0, canvas.height+5-y_off-(canvas.height-2*y_off)*delta*i/y_max);
     context.stroke();
   }
-
+  
+  context.closePath();  
   context.strokeStyle = axis_ticks_labels_color;  // y-axis
   context.beginPath();
   context.moveTo(x_off, y_off/2);
@@ -824,3 +825,18 @@ function change_glyph_btn3() {
 }
 
 update();
+
+btn_up.addEventListener('click', function(event) {
+  let new_r_max = canvas_setup.r_max; 
+  new_r_max = Math.max(100, Math.ceil(new_r_max*1.5));
+  canvas_setup.r_max = new_r_max;
+  recalculate_filtration();
+});
+
+
+btn_down.addEventListener('click', function(event) {
+  let new_r_max = canvas_setup.r_max; 
+  new_r_max = Math.max(100, Math.ceil(new_r_max/1.5));
+  canvas_setup.r_max = new_r_max;
+  recalculate_filtration();
+});
