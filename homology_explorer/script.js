@@ -153,7 +153,6 @@ function draw_triangles() {
       context.moveTo(triangles[i].vertices[0].x, triangles[i].vertices[0].y);
       for(let j=0; j<3; ++j) {
         context.lineTo(triangles[i].vertices[j].x, triangles[i].vertices[j].y);
-        context.fill();
       }
       context.lineTo(triangles[i].vertices[0].x, triangles[i].vertices[0].y);    
       context.fill();

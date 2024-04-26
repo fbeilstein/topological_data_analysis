@@ -57,7 +57,7 @@ body{
     width: 550px;
     display : flex;
     flex-direction: row;
-    justify-content: right;
+    justify-content: flex-end;
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
