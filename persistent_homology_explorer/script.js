@@ -39,7 +39,7 @@ let show_balls = true;
 let is_cech_not_alpha = true;
 let out_mode = 0;
 
-const canvas_setup = {"r_max" : 100, "x_off" : 30, "y_off" : 30, "n" : 50}; 
+const canvas_setup = {"r_max" : 170, "x_off" : 30, "y_off" : 30, "n" : 50}; 
 
 class Vertice {
   constructor(x, y) {
