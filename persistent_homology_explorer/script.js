@@ -483,10 +483,10 @@ function draw_x_axis(context, canvas, params) {
 
   for(let i=0; i<x_ticks; ++i) { //draw x-ticks and labels
     context.strokeStyle = axis_ticks_labels_color;
+    context.fillStyle = axis_ticks_labels_color;
     context.beginPath();
     context.moveTo(x_off+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off+tick_length);
     context.lineTo(x_off+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off);
-    context.fillStyle = axis_ticks_labels_color;
     context.font = label_font;
     context.fillText((x_max*i/x_ticks).toString(), x_off-15+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off/4);
     context.stroke();
@@ -517,17 +517,17 @@ function draw_y_axis(context, canvas, params) {
   context.lineWidth = 1;
   for(let i=0; i<y_ticks; ++i) { //draw y-ticks and labels
     context.strokeStyle = axis_ticks_labels_color;
+    context.fillStyle = axis_ticks_labels_color;
     context.beginPath();
     context.moveTo(x_off-tick_length, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
     context.lineTo(x_off, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
-    context.strokeStyle = my_lightgray;
     context.stroke();
     if(draw_lines)
       context.lineTo(canvas.width, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
     context.stroke();
     context.closePath();  
   }
-  context.fillStyle = axis_ticks_labels_color;
+
   context.font = label_font;
   let delta = y_max/y_labels;
   for(let i=0; i<y_labels; ++i) {
