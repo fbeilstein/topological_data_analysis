@@ -335,6 +335,7 @@ function draw_betti_curves(context, canvas, RB) {
   for(let i=0; i<red.length; ++i) {    
     let x_curr = Math.round(red[i][0]);
     let y_curr = red[i][1];
+    console.log(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_prev*height_off/y_ticks), Math.round(canvas.height-y_off-y_curr*height_off/y_ticks));
     context.lineTo(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_prev*height_off/y_ticks));   
     context.lineTo(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_curr*height_off/y_ticks)); 
     y_prev = y_curr;
