@@ -141,6 +141,7 @@ function draw_triangles() {
 
     canvas.style.backgroundColor = "white";
     context.clearRect(0,0, canvas.width, canvas.height);
+    context.beginPath();
     for(let i=triangles.length-1; i>=0; --i) {
       let labels = [triangles[i].vertices[0].label,triangles[i].vertices[1].label,triangles[i].vertices[2].label].sort().join("");
       context.strokeStyle = "gray";
@@ -149,16 +150,16 @@ function draw_triangles() {
       } 
       context.fillStyle = (set[labels]==1) ? (show_negative ? my_grey : my_green) : 'LightPink'; 
       context.lineWidth = 1;
-      context.beginPath();
+      
       context.moveTo(triangles[i].vertices[0].x, triangles[i].vertices[0].y);
       for(let j=0; j<3; ++j) {
         context.lineTo(triangles[i].vertices[j].x, triangles[i].vertices[j].y);
       }
       context.lineTo(triangles[i].vertices[0].x, triangles[i].vertices[0].y);    
-      context.fill();
-      context.stroke();
-      context.closePath();
-    }   
+    } 
+    context.fill();
+    context.stroke();
+    context.closePath();  
 }
 
 function draw_vertices() {
