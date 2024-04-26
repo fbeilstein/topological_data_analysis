@@ -1,6 +1,7 @@
 const canvas1  = document.getElementById("canvas1");
 const canvas2  = document.getElementById("canvas2");
 const output   = document.getElementById("output");
+const stats    = document.getElementById("stats");
 const context1 = canvas1.getContext("2d");
 const context2 = canvas2.getContext("2d");
 let btn1 = document.getElementsByClassName("btn1")[0];
@@ -20,7 +21,7 @@ const blue_histo_color    = "DodgerBlue"
 const axis_ticks_labels_color = "lightgray";
 const red_curve_color = "lightcoral";
 const blue_curve_color ="DodgerBlue";
-const label_font  = "15px Verdana";
+const label_font  = "14px Verdana";
 
 canvas1.width  = 
 canvas1.height = 
@@ -186,7 +187,7 @@ function update() {
     lines = get_lines_alpha(radius);
     triangles = get_triangles_alpha(radius);
   }
-  
+  stats.innerText = "Points: "+ vertices.length.toString() + "  Lines: "+lines.length.toString()+"  Triangles: "+triangles.length.toString();
   clear_canvas(context1, canvas1);
   
   if(show_balls) {
@@ -199,12 +200,18 @@ function update() {
   draw_points(context1);
 
   if(L_data != undefined) {
-    if(out_mode==0)
-      draw_betti_curves(context2, canvas2, [L_data[1], L_data[2]]);
-    else if(out_mode==1)
-      draw_betti_histograms(context2, canvas2, L_data[0]);
-    else
-      draw_betti_persistence(context2, canvas2, L_data[0])
+    btn3.style.display = "block";
+    switch (out_mode) {
+      case 0:
+            draw_betti_curves(context2, canvas2, [L_data[1], L_data[2]]);
+            break;
+      case 1:
+            draw_betti_histograms(context2, canvas2, L_data[0]);
+            break;
+      case 2:
+        draw_betti_persistence(context2, canvas2, L_data[0]);
+            break;
+    }
   }
   requestAnimationFrame(update);
 }
@@ -219,6 +226,8 @@ document.addEventListener('keydown', function (event) {
     show_balls = !(show_balls);     
     change_glyph_btn1(button);
   }
+  if(event.key=="r")
+    create_random_points(100);
 });
 
 document.addEventListener('mousewheel', function (event) {
@@ -257,23 +266,35 @@ canvas1.addEventListener('mousemove', function(event) {
     let y = event.offsetY;
     vertices[current_point].x = x; 
     vertices[current_point].y = y; 
-    alpha_filtration = create_filtration();
-    L_data = get_barcodes(alpha_filtration);
+    recalculate_filtration();
   }
 });
 
-function add_point(x,y) {
-  vertices.push(new Vertice(x,y));
+function recalculate_filtration() {
   alpha_filtration = create_filtration()
   L_data = get_barcodes(alpha_filtration);
+}
+
+function add_point(x,y) {
+  vertices.push(new Vertice(x,y));
+  recalculate_filtration();
+}
+
+function create_random_points(n) {
+  vertices = [];
+  let W = canvas1.width;
+  let H = canvas1.height;
+  for (let i=0; i<n; ++i) {
+    vertices.push(new Vertice(Math.floor(Math.random() * W), Math.floor(Math.random() * H)));
+  }
+  recalculate_filtration();
 }
 
 function delete_vertice(i) {
   if(i+1!=vertices.length) 
       [vertices[i], vertices[vertices.length-1]] = [vertices[vertices.length-1], vertices[i]];
   vertices.splice(-1);
-  alpha_filtration = create_filtration()
-  L_data = get_barcodes(alpha_filtration);
+  recalculate_filtration();
 }
 
 canvas1.addEventListener('dblclick', function(event) {
@@ -300,7 +321,7 @@ function draw_betti_curves(context, canvas, RB) {
  
   clear_canvas(context, canvas);
   draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r", "draw_lines" : false });
-  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : y_ticks, "y_max" : y_max, "label" : "betti numbers", "draw_lines" : true });
+  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : y_ticks, "y_max" : y_max, "label" : "betti curves", "draw_lines" : true });
   draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
  
   context.lineWidth = 1; // draw red curve
@@ -489,6 +510,7 @@ function draw_y_axis(context, canvas, params) {
   const x_off   = params.x_off;
   const y_off   = params.y_off;
   const y_max   = params.y_max;
+  const y_labels = Math.min(y_max, 30);
   const tick_length = x_off/4;
   const draw_lines = params.draw_lines;
 
@@ -503,11 +525,15 @@ function draw_y_axis(context, canvas, params) {
     if(draw_lines)
       context.lineTo(canvas.width, canvas.height-y_off-(canvas.height-y_off)*i/y_ticks);
     context.stroke();
-    context.fillStyle = axis_ticks_labels_color;
-    context.font = label_font;
-    context.fillText(parseInt(Math.ceil(i*y_max/y_ticks)).toString(), x_off/4, canvas.height+5-y_off-(canvas.height-y_off)*i/y_ticks);
-    context.stroke();
     context.closePath();  
+  }
+  context.fillStyle = axis_ticks_labels_color;
+  context.font = label_font;
+  let delta = y_max/y_labels;
+  for(let i=0; i<y_labels; ++i) {
+    context.beginPath();
+    context.fillText(parseInt(Math.ceil(delta*i)).toString(), x_off/9, canvas.height+5-y_off-(canvas.height-y_off)*delta*i/y_ticks);
+    context.stroke();
   }
 
   context.strokeStyle = axis_ticks_labels_color;  // y-axis
@@ -615,9 +641,6 @@ function get_max_index(filtration_set, span) {
 
 // algo from the paper https://geometry.stanford.edu/papers/zc-cph-05/zc-cph-05.pdf
 function get_barcodes(filtration) {
-  console.log('filtration: ', filtration);
-
-  const n = canvas_setup.n;
   let L   = [new Set(), new Set(), new Set()];
 
   let filtration_set = {};
@@ -653,9 +676,6 @@ function get_barcodes(filtration) {
 
   let red  = create_curve(L[0]);
   let blue = create_curve(L[1]); 
-
-  console.log(L, red, blue);
-
   return [L, red, blue];
 }
 
@@ -764,14 +784,12 @@ btn3.addEventListener('click', function(event) {
   change_glyph_btn3();
 });
 
-
 function change_glyph_btn1() {
   if(show_balls==true)
     btn1.style.backgroundImage = `url("./btn_1_on.png")`;
   else
     btn1.style.backgroundImage = `url("./btn_1_off.png")`;
 }
-
 
 function change_glyph_btn2() {
   if(is_cech_not_alpha==true)
@@ -781,12 +799,17 @@ function change_glyph_btn2() {
 }
 
 function change_glyph_btn3() {
-  if(out_mode==0)
-    btn3.style.backgroundImage = `url("./btn_3_0.png")`;
-  else if(out_mode==1)
-    btn3.style.backgroundImage = `url("./btn_3_1.png")`;
-  else
-    btn3.style.backgroundImage = `url("./btn_3_2.png")`;
+  switch (out_mode) {
+    case 0:
+          btn3.style.backgroundImage = `url("./btn_3_0.png")`;
+          break;
+    case 1:
+          btn3.style.backgroundImage = `url("./btn_3_1.png")`;
+          break;
+    case 2:
+          btn3.style.backgroundImage = `url("./btn_3_2.png")`;
+          break;
+  }
 }
 
 update();

@@ -15,16 +15,30 @@ body{
 }
 
 #canvas2{
-    padding-left: -5px;
+    padding-left: 20px;
     border: 1px solid grey;
     height: 550px;
     width: 550px;
     border : none;
 }
 
-.buttons{
+#stats{
+   font-family: Verdana;
+   font-size: 14px;
+   -webkit-user-select: none; /* Safari */
+   -ms-user-select: none; /* IE 10 and IE 11 */
+   user-select: none; /* Standard syntax */
+}
+
+#status {
     padding-top: 10px;
+    display : flex;
+    flex-direction: row;
     width: 550px;
+    justify-content: space-between;
+}
+
+.buttons{
     display : flex;
     flex-direction: row;
     justify-content: right;
@@ -55,6 +69,7 @@ body{
 
 .btn3{
     background-image: url("./btn_3_0.png");
+    display: none;
 }
 
 #info{
