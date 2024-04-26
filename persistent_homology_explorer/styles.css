@@ -57,8 +57,7 @@ body{
     padding-top: 10px;
     display : flex;
     flex-direction: row;
-    justify-content: right;
-    -webkit-justify-content: right;
+    justify-content: end;
 }
 
 .btn{
