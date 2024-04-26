@@ -58,6 +58,7 @@ body{
     display : flex;
     flex-direction: row;
     justify-content: right;
+    -webkit-justify-content: right;
 }
 
 .btn{
