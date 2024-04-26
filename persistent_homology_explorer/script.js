@@ -19,8 +19,8 @@ const dead_zone_color  = "rgb(211, 211, 211)";
 const scan_line_color = "rgb(139, 0, 139, 0.5)"
 const blue_histo_color    = "DodgerBlue"
 const axis_ticks_labels_color = "lightgray";
-const red_curve_color = "lightcoral";
-const blue_curve_color ="DodgerBlue";
+const red_curve_color = "red";
+const blue_curve_color = "rgb(0, 70, 255)";
 const label_font  = "14px Verdana";
 
 canvas1.width  = 
