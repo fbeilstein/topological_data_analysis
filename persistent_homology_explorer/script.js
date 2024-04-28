@@ -38,12 +38,11 @@ let current_point = -1;
 const RR = 19*19;
 let radius = 70;
 let L_data = undefined;
-let alpha_filtration = undefined;
+let alpha_filtration = [];
 let show_balls = true;
 let is_cech_not_alpha = true;
 let out_mode = 0;
-
-let canvas_setup = {"r_max" : 140, "x_off" : 35, "y_off" : 35, "n" : 50}; 
+let canvas_setup = {"r_max" : 100, "x_off" : 35, "y_off" : 35}; 
 
 class Vertice {
   constructor(x, y) {
@@ -74,7 +73,6 @@ function draw_triangles(context, triangles) {
     context.closePath();
   }   
 }
-
 
 function get_lines_alpha(r) { 
   let T = [];
@@ -336,8 +334,6 @@ function draw_betti_curves(context, canvas, RB) {
   draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
  
   context.lineWidth = 1; // draw red curve
-  const n = canvas_setup.n;
-  const x_delta = canvas_setup.r_max/n;
 
   context.strokeStyle = red_curve_color;
   context.beginPath();
@@ -359,7 +355,6 @@ function draw_betti_curves(context, canvas, RB) {
     context.beginPath();
     y_prev = 0;
     context.moveTo(x_off, Math.round(canvas.height-y_off-y_prev*height_off/y_ticks)); 
-    
     for(let i=0; i<blue.length; ++i) {    
       let x_curr = Math.round(blue[i][0]);
       let y_curr = blue[i][1];
@@ -691,22 +686,24 @@ function get_barcodes(filtration) {
   return [L, red, blue];
 }
 
+
 function create_curve(L) {
   let out = [];
   let temp = [];
-  
   for (let key of L) {
     temp.push([key[0], 1]);
     temp.push([key[1], -1]);
   }
+  xx = temp
   temp.sort((x,y)=>x[0]-y[0]);
+
   let M = 0;
   let acc = 0;
   for (let i=0; i<temp.length; ) {
     acc += temp[i][1];
     let j=i+1;
     for ( ; j<temp.length && temp[i][0]==temp[j][0]; ++j) {
-      acc += temp[i][1];
+      acc += temp[j][1];
     }
     out.push([temp[i][0], acc]);
     M=Math.max(M, acc)
@@ -824,8 +821,6 @@ function change_glyph_btn3() {
   }
 }
 
-update();
-
 btn_up.addEventListener('click', function(event) {
   let new_r_max = canvas_setup.r_max; 
   new_r_max = Math.max(100, Math.ceil(new_r_max*1.5));
@@ -833,10 +828,12 @@ btn_up.addEventListener('click', function(event) {
   recalculate_filtration();
 });
 
-
 btn_down.addEventListener('click', function(event) {
   let new_r_max = canvas_setup.r_max; 
   new_r_max = Math.max(100, Math.ceil(new_r_max/1.5));
   canvas_setup.r_max = new_r_max;
   recalculate_filtration();
 });
+
+update();
+
