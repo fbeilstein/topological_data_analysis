@@ -13,13 +13,16 @@ let btn_down = document.getElementsByClassName("btn_down")[0];
 //colors
 const my_green   = "rgb(144, 238, 144, 0.4)";
 const my_coral   = "rgb(240, 128, 128, 0.2)";
-const my_red   = "rgb(240, 128, 128, 0.6)";
-const my_blue   = "rgb(30, 144, 255, 0.6)";
-const red_histo_color  = "rgb(240, 128, 128, 0.7)";
+
+const red_histo_color   = "rgb(240, 128, 128, 0.5)";
+const red_histo_color_dark   = "rgb(240, 128, 128)";
+
+const blue_histo_color   = "rgba(30, 144, 255, 0.5)";
+const blue_histo_color_dark   = "rgb(30, 144, 255)";
+
 const my_lightgray  = "rgb(211, 211, 211, 0.2)";
 const dead_zone_color  = "rgb(211, 211, 211)";
 const scan_line_color = "rgb(139, 0, 139, 0.5)"
-const blue_histo_color    = "DodgerBlue"
 const axis_ticks_labels_color = "lightgray";
 const red_curve_color = "red";
 const blue_curve_color = "rgb(0, 70, 255)";
@@ -392,11 +395,15 @@ function draw_betti_histograms(context, canvas, L) {
     let end = (canvas.width-x_off)*key[1]/r_max;
     context.beginPath();
     context.fillStyle = red_histo_color;
+    if(radius>=key[0] && radius<=key[1])
+      context.fillStyle = red_histo_color_dark;
     context.moveTo(x_off+start,   y_off+y);
     context.lineTo(x_off+end, y_off+y);
     context.lineTo(x_off+end, y_off+y+delta);
     context.lineTo(x_off+start,   y_off+y+delta);
     context.lineTo(x_off+start,   y_off+y);
+    if(radius>=key[0] && radius<=key[1])
+    context.stroke();
     context.fill();
     context.closePath();
     y += h+delta;
@@ -407,6 +414,8 @@ function draw_betti_histograms(context, canvas, L) {
     let end = (canvas.width-x_off)*key[1]/r_max;
     context.beginPath();
     context.fillStyle = blue_histo_color;
+    if(radius>=key[0] && radius<=key[1])
+      context.fillStyle = blue_histo_color_dark;
     context.moveTo(x_off+start, y_off+y);
     context.lineTo(x_off+end,   y_off+y);
     context.lineTo(x_off+end,   y_off+y+delta);
