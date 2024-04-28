@@ -2,6 +2,7 @@ const canvas1  = document.getElementById("canvas1");
 const canvas2  = document.getElementById("canvas2");
 const output   = document.getElementById("output");
 const stats    = document.getElementById("stats");
+const betti_stats    = document.getElementById("bettistats");
 const context1 = canvas1.getContext("2d");
 const context2 = canvas2.getContext("2d");
 let btn1 = document.getElementsByClassName("btn1")[0];
@@ -19,6 +20,9 @@ const red_histo_color_dark   = "rgb(240, 128, 128)";
 
 const blue_histo_color   = "rgba(30, 144, 255, 0.5)";
 const blue_histo_color_dark   = "rgb(30, 144, 255)";
+
+const red_persistence_color   = "rgb(240, 128, 128, 0.8)";
+const blue_persistence_color   = "rgba(30, 144, 255, 0.8)";
 
 const my_lightgray  = "rgb(211, 211, 211, 0.2)";
 const dead_zone_color  = "rgb(211, 211, 211)";
@@ -218,6 +222,7 @@ function update() {
             draw_betti_persistence(context2, canvas2, L_data[0]);
             break;
     }
+      betti_stats.innerText = "Cc:  " + get_n_active_bars(L_data[0][0]).toString() + "   Holes:  " + get_n_active_bars(L_data[0][1]).toString();
   }
   requestAnimationFrame(update);
 }
@@ -455,7 +460,7 @@ function draw_betti_persistence(context, canvas, L) {
     let start = x_off+(canvas.width-x_off)*key[0]/r_max;
     let end = canvas.height-y_off-(canvas.height-2*y_off)*key[1]/r_max;
     context.beginPath();
-    context.fillStyle = my_red;
+    context.fillStyle = red_persistence_color;
     context.arc(start, end, 5, 0, 2*Math.PI);   
     context.fill();
     context.closePath();
@@ -465,7 +470,7 @@ function draw_betti_persistence(context, canvas, L) {
     let start = x_off+(canvas.width-x_off)*key[0]/r_max;
     let end = canvas.height-y_off-(canvas.height-2*y_off)*key[1]/r_max;
     context.beginPath();
-    context.fillStyle = my_blue;
+    context.fillStyle = blue_persistence_color;
     context.arc(start, end, 5, 0, 2*Math.PI);   
     context.fill();
     context.closePath();
@@ -695,6 +700,14 @@ function get_barcodes(filtration) {
   return [L, red, blue];
 }
 
+function get_n_active_bars(L) {
+  let n_bars = 0;
+  for (let key of L) {
+    if(radius>=key[0] && radius<=key[1])
+      n_bars += 1
+  }  
+  return n_bars;
+}
 
 function create_curve(L) {
   let out = [];
@@ -703,7 +716,6 @@ function create_curve(L) {
     temp.push([key[0], 1]);
     temp.push([key[1], -1]);
   }
-  xx = temp
   temp.sort((x,y)=>x[0]-y[0]);
 
   let M = 0;

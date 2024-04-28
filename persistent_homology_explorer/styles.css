@@ -39,6 +39,16 @@ body{
    user-select: none; /* Standard syntax */
 }
 
+#bettistats{
+    display: grid;
+    align-items: center;
+    font-family: Verdana;
+    font-size: 14px;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+ }
+
 #status {
     padding-top: 5px;
     display : flex;
@@ -58,7 +68,6 @@ body{
 }
 
 .buttons2{
-    width: var(--width);
     padding-top: 5px;
     display : flex;
     flex-direction: row;
