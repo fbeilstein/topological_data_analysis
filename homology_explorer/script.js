@@ -900,12 +900,19 @@ function recalculate_math() {
   out_string += (b2.smith_invs.length > max_length) ? hide_show_latex(Smith2_latex, 'SM2_div', 'SM2_btn') : Smith2_latex;
 
   let conn_components = b1.dim - b1.rank - b0.rank;
-  out_string += "<br><br>cc: \\(" + conn_components.toString() + "\\)";
   let holes = b2.dim - b2.rank - b1.rank;
-  out_string += "<br>holes : \\(" + holes.toString() + "\\)";
   let voids = out_triangles.length - b2.rank;
-  out_string += "<br>voids :  \\(" + voids.toString()+"\\)";
 
+  out_string += "<br><br>\n";
+  out_string += "\\(\n";
+  out_string += "\\begin{CD}\n";
+  out_string += "\\underset{\\dim = 0}{\\varnothing} @>\\partial_{3}>\\text{rank} = 0>" 
+  out_string += "\\underset{\\dim = " + ch2.length.toString() + "}{C_2} @>\\partial_{2}>\\text{rank} = " + b2.rank.toString() + "> "
+  out_string += "\\underset{\\dim = " + ch1.length.toString() + "}{C_1} @>\\partial_{1}>\\text{rank} = " + b1.rank.toString() + "> "
+  out_string += "\\underset{\\dim = " + ch0.length.toString() + "}{C_0} @>\\partial_0>\\text{rank} = 0> \\{0\\}\n";
+  out_string += "\\end{CD}\n"; 
+  out_string += "\\)\n";
+  out_string += "<br>";
 
   out_string += "<br><br> \\( H_0(K) = \\text{Ker}(\\partial_0) / \\text{Im}(\\partial_1) \\cong \\mathbb{Z}^{" + conn_components.toString() + "}\\)"; 
   out_string += "<br> \\( H_1(K) = \\text{Ker}(\\partial_1) / \\text{Im}(\\partial_2) \\cong"
@@ -926,15 +933,10 @@ function recalculate_math() {
   else
     out_string += "\\{0\\} \\)";
 
-  out_string += "<br>\n";
-  out_string += "$$\n";
-  out_string += "\\begin{CD}\n";
-  out_string += "\\underset{\\dim = 0}{\\emptyset} @>\\partial_{3}>\\text{rank} = 0>" 
-  out_string += "\\underset{\\dim = " + ch2.length.toString() + "}{C_2} @>\\partial_{2}>\\text{rank} = " + b2.rank.toString() + "> "
-  out_string += "\\underset{\\dim = " + ch1.length.toString() + "}{C_1} @>\\partial_{1}>\\text{rank} = " + b1.rank.toString() + "> "
-  out_string += "\\underset{\\dim = " + ch0.length.toString() + "}{C_0} @>\\partial_0>\\text{rank} = 0> 0\n";
-  out_string += "\\end{CD}\n"; 
-  out_string += "$$\n";
+
+  out_string += "<br><br>cc: \\(" + conn_components.toString() + "\\)";
+  out_string += "<br>holes : \\(" + holes.toString() + "\\)";
+  out_string += "<br>voids :  \\(" + voids.toString()+"\\)";
 
   MathJax.typesetPromise().then(() => {
     MathJax.typesetClear([output]);
