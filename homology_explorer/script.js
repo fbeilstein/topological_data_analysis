@@ -933,10 +933,12 @@ function recalculate_math() {
   else
     out_string += "\\{0\\} \\)";
 
-
-  out_string += "<br><br>cc: \\(" + conn_components.toString() + "\\)";
-  out_string += "<br>holes : \\(" + holes.toString() + "\\)";
-  out_string += "<br>voids :  \\(" + voids.toString()+"\\)";
+  out_string += "<br><br>"
+  out_string += "<table>"
+  out_string += "<tr><td>cc:</td><td>\\(" + conn_components.toString() + "\\)</td></tr>";
+  out_string += "<tr><td>holes :</td><td>\\(" + holes.toString() + "\\)</td></tr>";
+  out_string += "<tr><td>voids :</td><td>\\(" + voids.toString() + "\\)</td></tr>";
+  out_string += "</table>"
 
   MathJax.typesetPromise().then(() => {
     MathJax.typesetClear([output]);
