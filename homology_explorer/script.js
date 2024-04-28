@@ -900,7 +900,7 @@ function recalculate_math() {
   out_string += (b2.smith_invs.length > max_length) ? hide_show_latex(Smith2_latex, 'SM2_div', 'SM2_btn') : Smith2_latex;
 
   let conn_components = b1.dim - b1.rank - b0.rank;
-  out_string += "<br><br>connected components: \\(" + conn_components.toString() + "\\)";
+  out_string += "<br><br>cc: \\(" + conn_components.toString() + "\\)";
   let holes = b2.dim - b2.rank - b1.rank;
   out_string += "<br>holes : \\(" + holes.toString() + "\\)";
   let voids = out_triangles.length - b2.rank;
