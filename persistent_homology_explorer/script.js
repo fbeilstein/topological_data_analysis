@@ -338,7 +338,7 @@ function draw_betti_curves(context, canvas, RB) {
  
   clear_canvas(context, canvas);
   draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r", "draw_lines" : false });
-  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : y_ticks, "y_max" : y_max, "label" : "betti curves", "draw_lines" : true, "y_labels" : Math.min(y_max, 30) });
+  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : y_ticks, "y_max" : y_max, "label" : "betti numbs", "draw_lines" : true, "y_labels" : Math.min(y_max, 30) });
   draw_scanning_line(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max });
  
   context.lineWidth = 1; // draw red curve
@@ -384,7 +384,7 @@ function draw_betti_histograms(context, canvas, L) {
   const x_ticks = 10;
 
   draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r", "draw_lines" : false  });
-  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : 0, "y_max" : 0, "label" : "pers. barcodes", "draw_lines" : false  });
+  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : 0, "y_max" : 0, "label" : "features", "draw_lines" : false  });
   
   let red  = L[0];
   let blue = L[1];
@@ -442,8 +442,8 @@ function draw_betti_persistence(context, canvas, L) {
   const x_ticks = 10;
 
   draw_x_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "x_ticks" : x_ticks, "x_max" : r_max, "label" : "r", "draw_lines" : true  });
-  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : x_ticks, "y_max" : r_max, "label" : "pers. diagram", "draw_lines" : true,  "y_labels" : 10  });
-  
+  draw_y_axis(context, canvas, {"x_off" : x_off, "y_off" : y_off, "y_ticks" : x_ticks, "y_max" : r_max, "label" : "r", "draw_lines" : true,  "y_labels" : 10  });
+
   let red  = L[0];
   let blue = L[1];
 
@@ -535,7 +535,7 @@ function draw_y_axis(context, canvas, params) {
   const draw_lines = params.draw_lines;
 
   context.lineWidth = 1;
-  for(let i=0; i<y_ticks; ++i) { //draw y-ticks and labels
+  for(let i=0; i<=y_ticks; ++i) { //draw y-ticks and labels
     context.strokeStyle = axis_ticks_labels_color;
     context.fillStyle = axis_ticks_labels_color;
     context.beginPath();
@@ -551,7 +551,7 @@ function draw_y_axis(context, canvas, params) {
   context.font = label_font;
   let delta = y_max/y_labels;
   context.beginPath();
-  for(let i=0; i<y_labels; ++i) {
+  for(let i=0; i<=y_labels; ++i) {
     context.fillText(parseInt(Math.ceil(delta*i)).toString(), 0, canvas.height+5-y_off-(canvas.height-2*y_off)*delta*i/y_max);
     context.stroke();
   }
