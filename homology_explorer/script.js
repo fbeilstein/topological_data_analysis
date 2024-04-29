@@ -12,6 +12,7 @@ let my_grey = "rgb(211, 211, 211, 0.4)";
 let show_labels = true;
 let show_negative = false;
 let show_connections = false;
+let forbidden = -1;
 
 canvas.width  = 550;
 canvas.height = 550;
@@ -50,6 +51,7 @@ class Vertice {
     this.y = y;
     this.label = label;
     this.picked = false;
+    this.non_dockable = false;
   }
 }
 
@@ -161,8 +163,6 @@ function draw_triangles() {
       context.stroke();
       context.closePath();  
     } 
-    
-    
 }
 
 function draw_vertices() {
@@ -171,8 +171,12 @@ function draw_vertices() {
       context.beginPath();
       if(show_negative)
         context.fillStyle = 'gray';
-      else
-        context.fillStyle = triangles[i].vertices[j].picked ? 'red' : my_coral;
+      else {
+        if(triangles[i].vertices[j].non_dockable)
+          context.fillStyle = "rgb(119, 136, 153, 0.7)";
+        else
+          context.fillStyle = triangles[i].vertices[j].picked ? 'red' : my_coral;
+    }
       context.arc(triangles[i].vertices[j].x, triangles[i].vertices[j].y, 5, 0, 2*Math.PI);   
       context.fill();
       context.closePath();
@@ -321,7 +325,11 @@ function can_glue(x,y) {
       has_x_label += (triangles[i].vertices[j].label==triangles[x[0]].vertices[x[1]].label);
     
     }
-    if(has_y && has_x_label) return false;
+    if(has_y && has_x_label) {
+      forbidden = x;
+      triangles[x[0]].vertices[x[1]].non_dockable = true;
+      return false;
+    }
   }
   return true;
 
@@ -446,7 +454,13 @@ canvas.addEventListener('mouseup', function(event) {
   recalculate_math();
 });
 
+
 canvas.addEventListener('mousemove', function(event) {
+  console.log("forb",forbidden)
+  if(forbidden!=-1)
+    triangles[forbidden[0]].vertices[forbidden[1]].non_dockable = false;
+
+  forbidden = -1;
   if(event.buttons==4) {
     translate_triangles(event.movementX, event.movementY);
     return 
