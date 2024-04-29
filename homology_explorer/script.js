@@ -923,7 +923,8 @@ function recalculate_math() {
   out_string += "\\underset{\\dim = 0}{\\varnothing} @>\\partial_{3}>\\text{rank} = 0>" 
   out_string += "\\underset{\\dim = " + ch2.length.toString() + "}{C_2} @>\\partial_{2}>\\text{rank} = " + b2.rank.toString() + "> "
   out_string += "\\underset{\\dim = " + ch1.length.toString() + "}{C_1} @>\\partial_{1}>\\text{rank} = " + b1.rank.toString() + "> "
-  out_string += "\\underset{\\dim = " + ch0.length.toString() + "}{C_0} @>\\partial_0>\\text{rank} = 0> \\{0\\}\n";
+  out_string += "\\underset{\\dim = " + ch0.length.toString() + "}{C_0} @>\\partial_{0}>\\text{rank} = 0>\n";
+  out_string += "\\underset{\\dim = 0}{\\{0\\}} \n";
   out_string += "\\end{CD}\n"; 
   out_string += "\\)\n";
   out_string += "<br>";
