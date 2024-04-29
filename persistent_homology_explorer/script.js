@@ -14,16 +14,12 @@ let btn_down = document.getElementsByClassName("btn_down")[0];
 //colors
 const my_green   = "rgb(144, 238, 144, 0.4)";
 const my_coral   = "rgb(240, 128, 128, 0.2)";
-
 const red_histo_color   = "rgb(240, 128, 128, 0.5)";
 const red_histo_color_dark   = "rgb(240, 128, 128)";
-
 const blue_histo_color   = "rgba(30, 144, 255, 0.5)";
 const blue_histo_color_dark   = "rgb(30, 144, 255)";
-
 const red_persistence_color   = "rgb(240, 128, 128, 0.8)";
 const blue_persistence_color   = "rgba(30, 144, 255, 0.8)";
-
 const my_lightgray  = "rgb(211, 211, 211, 0.2)";
 const dead_zone_color  = "rgb(211, 211, 211)";
 const scan_line_color = "rgb(139, 0, 139, 0.5)"
@@ -31,7 +27,8 @@ const axis_ticks_labels_color = "lightgray";
 const red_curve_color = "red";
 const blue_curve_color = "rgb(0, 70, 255)";
 const label_font  = "14px Verdana";
-const n_points = 100;
+const r_threshold = 50;
+
 
 canvas1.width  = 
 canvas1.height = 
@@ -50,6 +47,7 @@ let show_balls = true;
 let is_cech_not_alpha = true;
 let out_mode = 0;
 let canvas_setup = {"r_max" : 100, "x_off" : 35, "y_off" : 35}; 
+const n_random_points = 100;
 
 class Vertice {
   constructor(x, y) {
@@ -222,7 +220,7 @@ function update() {
             draw_betti_persistence(context2, canvas2, L_data[0]);
             break;
     }
-      betti_stats.innerText = "Cc:  " + get_n_active_bars(L_data[0][0]).toString() + "   Holes:  " + get_n_active_bars(L_data[0][1]).toString();
+      betti_stats.innerHTML = '<p><span style="color:LightCoral"> • </span> Cc: </span>' + get_n_active_bars(L_data[0][0]).toString() + '   <font color="DodgerBlue"> • </font>'+  'Holes:  ' + get_n_active_bars(L_data[0][1]).toString()+'</p>';
   }
   requestAnimationFrame(update);
 }
@@ -243,7 +241,7 @@ document.addEventListener('keydown', function (event) {
     out_mode = 2;
     change_glyph_btn3();
   } else if(event.key=="r") {
-    create_random_points(n_points);
+    create_random_points(n_random_points);
   }
 });
 
@@ -388,6 +386,7 @@ function draw_betti_histograms(context, canvas, L) {
   
   let red  = L[0];
   let blue = L[1];
+ 
   const n_bars = red.size + blue.size;
   const scale = (Math.ceil(n_bars/30));
   let h       =  5/scale;
@@ -730,6 +729,7 @@ function create_curve(L) {
     M=Math.max(M, acc)
     i = j;
   }
+
   return {"data" : out, "max": M};
 }
 
@@ -844,14 +844,14 @@ function change_glyph_btn3() {
 
 btn_up.addEventListener('click', function(event) {
   let new_r_max = canvas_setup.r_max; 
-  new_r_max = Math.max(100, Math.ceil(new_r_max*1.5));
+  new_r_max = Math.max(r_threshold, Math.ceil(new_r_max*1.5));
   canvas_setup.r_max = new_r_max;
   recalculate_filtration();
 });
 
 btn_down.addEventListener('click', function(event) {
   let new_r_max = canvas_setup.r_max; 
-  new_r_max = Math.max(100, Math.ceil(new_r_max/1.5));
+  new_r_max = Math.max(r_threshold, Math.ceil(new_r_max/1.5));
   canvas_setup.r_max = new_r_max;
   recalculate_filtration();
 });

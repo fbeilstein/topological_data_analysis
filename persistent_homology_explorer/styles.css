@@ -133,8 +133,8 @@ body{
 
 #info{
     width: var(--width);
-    padding-top: 10px;
-    padding-left: 40px;
+    padding-top: 40px;
+    padding-left: 20px;
     font-family: arial;
     font-size: 12px;
     color : lightgray;
