@@ -47,7 +47,7 @@ let show_balls = true;
 let is_cech_not_alpha = true;
 let out_mode = 0;
 let canvas_setup = {"r_max" : 100, "x_off" : 35, "y_off" : 35}; 
-const n_random_points = 4000;
+const n_random_points = 10000;
 
 class Vertice {
   constructor(x, y) {
@@ -297,26 +297,40 @@ function add_point(x,y) {
   recalculate_filtration();
 }
 
+function gaussianRandom(mean=0, stdev=1) {
+  const u = 1 - Math.random(); // Converting [0,1) to (0,1]
+  const v = Math.random();
+  const z = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+  // Transform to the desired mean and standard deviation:
+  return z * stdev + mean;
+}
+
+function lognormRandom(mean=0, stdev=1) {
+  return Math.exp(gaussianRandom(mean, stdev));
+}
+
 function create_random_universe(n) {
   vertices = [];
   let W = canvas1.width;
   let H = canvas1.height;
   let N = Math.sqrt(n_random_points);
-  let n_voids = 600;
+  let n_voids = 100;
   let voids = [];
-  let max_void_R = 50;
   for (let i=0; i<n_voids; ++i){
-    voids.push([Math.floor(Math.random() * W), Math.floor(Math.random() * H), Math.floor(Math.random() * max_void_R)]);
+    let void_r = Math.min(H/20, lognormRandom(1.2, 4));
+    //console.log("r=",void_r)
+    voids.push([Math.floor(Math.random() * W), Math.floor(Math.random() * H), void_r]);
   }
-
+console.log(voids)
   for (let i=0; i<N; ++i)
     for (let j=0; j<N; ++j) {
       let flag = false;
       let x = Math.floor(Math.random() * W);
       let y = Math.floor(Math.random() * H);
-      for (let k=0; k<N; ++k) {
+      for (let k=0; k<voids.length; ++k) {
         if(Math.sqrt((x-voids[k][0])*(x-voids[k][0])+(y-voids[k][1])*(y-voids[k][1]))<voids[k][2]) 
         {
+          //console.log(Math.sqrt((x-voids[k][0])*(x-voids[k][0])+(y-voids[k][1])*(y-voids[k][1])), voids[k][2])
           flag = true;
           break;
         }
@@ -324,6 +338,7 @@ function create_random_universe(n) {
       if(!flag)
       vertices.push(new Vertice(x, y));
     }
+    console.log(vertices)
   recalculate_filtration();
 }
 
@@ -356,12 +371,13 @@ canvas1.addEventListener('dblclick', function(event) {
 
 function draw_betti_curves(context, canvas, RB) {
   const red = RB[0].data;
+  if(red.length==0) return;
   const blue = RB[1].data;
   const x_off       = canvas_setup.x_off;
   const y_off       = canvas_setup.y_off;
   const r_max       = canvas_setup.r_max;
   const x_ticks     = 10;
-  const y_max       = 1+Math.max(RB[0].max, RB[1].max);
+  const y_max       = 300;//1+Math.max(RB[0].max, RB[1].max);
   const y_ticks     = y_max;
   const width_off   = canvas.width-x_off;
   const height_off  = canvas.height-2*y_off;
