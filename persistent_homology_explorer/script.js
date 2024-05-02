@@ -47,7 +47,7 @@ let show_balls = true;
 let is_cech_not_alpha = true;
 let out_mode = 0;
 let canvas_setup = {"r_max" : 100, "x_off" : 35, "y_off" : 35}; 
-const n_random_points = 2000;
+const n_random_points = 4000;
 
 class Vertice {
   constructor(x, y) {
@@ -301,10 +301,10 @@ function create_random_universe(n) {
   vertices = [];
   let W = canvas1.width;
   let H = canvas1.height;
-  let N = 70;
-  let n_voids = 70;
+  let N = Math.sqrt(n_random_points);
+  let n_voids = 600;
   let voids = [];
-  let max_void_R = 60;
+  let max_void_R = 50;
   for (let i=0; i<n_voids; ++i){
     voids.push([Math.floor(Math.random() * W), Math.floor(Math.random() * H), Math.floor(Math.random() * max_void_R)]);
   }
