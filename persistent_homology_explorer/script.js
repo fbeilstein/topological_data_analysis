@@ -242,6 +242,8 @@ document.addEventListener('keydown', function (event) {
     change_glyph_btn3();
   } else if(event.key=="r") {
     create_random_points(n_random_points);
+  } else if(event.key=="u") {
+    create_random_universe();
   }
 });
 
@@ -292,6 +294,36 @@ function recalculate_filtration() {
 
 function add_point(x,y) {
   vertices.push(new Vertice(x,y));
+  recalculate_filtration();
+}
+
+function create_random_universe(n) {
+  vertices = [];
+  let W = canvas1.width;
+  let H = canvas1.height;
+  let N = 70;
+  let n_voids = 70;
+  let voids = [];
+  let max_void_R = 60;
+  for (let i=0; i<n_voids; ++i){
+    voids.push([Math.floor(Math.random() * W), Math.floor(Math.random() * H), Math.floor(Math.random() * max_void_R)]);
+  }
+
+  for (let i=0; i<N; ++i)
+    for (let j=0; j<N; ++j) {
+      let flag = false;
+      let x = Math.floor(Math.random() * W);
+      let y = Math.floor(Math.random() * H);
+      for (let k=0; k<N; ++k) {
+        if(Math.sqrt((x-voids[k][0])*(x-voids[k][0])+(y-voids[k][1])*(y-voids[k][1]))<voids[k][2]) 
+        {
+          flag = true;
+          break;
+        }
+      }
+      if(!flag)
+      vertices.push(new Vertice(x, y));
+    }
   recalculate_filtration();
 }
 
