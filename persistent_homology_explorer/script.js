@@ -47,7 +47,7 @@ let show_balls = true;
 let is_cech_not_alpha = true;
 let out_mode = 0;
 let canvas_setup = {"r_max" : 100, "x_off" : 35, "y_off" : 35}; 
-const n_random_points = 100;
+const n_random_points = 2000;
 
 class Vertice {
   constructor(x, y) {
