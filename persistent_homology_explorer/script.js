@@ -377,7 +377,7 @@ function draw_betti_curves(context, canvas, RB) {
   const y_off       = canvas_setup.y_off;
   const r_max       = canvas_setup.r_max;
   const x_ticks     = 10;
-  const y_max       = 300;//1+Math.max(RB[0].max, RB[1].max);
+  const y_max       = 1+Math.max(RB[0].max, RB[1].max);
   const y_ticks     = y_max;
   const width_off   = canvas.width-x_off;
   const height_off  = canvas.height-2*y_off;
