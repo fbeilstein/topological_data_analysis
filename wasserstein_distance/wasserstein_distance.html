@@ -1,0 +1,347 @@
+<html>
+
+<head>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/addaleax/munkres-js@latest/munkres.js"></script>
+
+<script type="application/javascript">
+
+function L_inf_p(x, y, p) {
+    return Math.pow(Math.max(Math.abs(x[0] - y[0]), Math.abs(x[1] - y[1])), p);
+}
+function L_inf_p_diag(x, p) {
+    return Math.pow(Math.abs(x[0] - x[1]) / 2.0, p);
+}
+
+function diags_to_matrix(dX, dY, p) {
+    let distM = [];
+    for (let i = 0; i < dX.length; ++i) {
+        let row = [];
+        for (let j = 0; j < dY.length;  ++j)
+            row.push(L_inf_p(dX[i], dY[j], p));
+        let d_diag = L_inf_p_diag(dX[i], p);
+        for (let j = 0; j < dX.length;  ++j)
+            row.push(d_diag);
+        distM.push(row);
+    }
+    let row = [];
+    for (let j = 0; j < dY.length;  ++j)
+        row.push(L_inf_p_diag(dY[j], p));
+    for (let j = 0; j < dX.length;  ++j)
+        row.push(0.0);
+    for (let j = 0; j < dY.length;  ++j)
+        distM.push(row);
+    return distM;
+}
+
+function wasserstein_p(diag_1, diag_2, p) {
+    if (!diag_1.length && !diag_2.length)
+        return {'matching': [], 'distance': 0.0};
+    var matrix = diags_to_matrix(diag_1, diag_2, p);
+    var m = new Munkres();
+    var indices = m.compute(matrix);
+    var total = 0;
+    for (var i = 0; i < indices.length; ++i) {
+      var row = indices[i][0], col = indices[i][1];
+      var value = matrix[row][col];
+      total += value;
+    }
+    return {'matching': indices, 'distance': Math.pow(total, 1.0/p)}
+}
+
+var x_min = 0.0;
+var y_min = 0.0;
+var x_max = 1.0;
+var y_max = 1.0;
+var colors = ['blue', 'red'];
+var p_val = 1.0;
+
+
+
+function loss_function_2d() {
+    var blue_x = [];
+    var blue_y = [];
+    var red_x = [];
+    var red_y = [];
+    var black_x = [];
+    var black_y = [];
+    var diag_1 = [];
+    var diag_2 = [];
+    for (var i = 0; i < points.length; ++i) {
+        if (points[i][1] > points[i][0]) {
+            if (points[i][2]) {
+                blue_x.push(points[i][0]);
+                blue_y.push(points[i][1]);
+                diag_1.push([points[i][0], points[i][1]]);
+            } else {
+                red_x.push(points[i][0]);
+                red_y.push(points[i][1]);
+                diag_2.push([points[i][0], points[i][1]]);
+            }
+        } else {
+            black_x.push(points[i][0]);
+            black_y.push(points[i][1]);
+        }
+    }
+
+    data = [];
+
+    // datapoints
+    data.push({
+        x: red_x, y: red_y,
+        showscale: false, opacity: 1.0, type: 'scatter', mode: 'markers',
+        name: 'red class datapoints',
+        marker: {size: 12, color: 'red'},
+    });
+    data.push({
+        x: blue_x, y: blue_y,
+        showscale: false, opacity: 1.0, type: 'scatter', mode: 'markers',
+        name: 'red class datapoints',
+        marker: {size: 12, color: 'blue'},
+    });
+    data.push({
+        x: black_x, y: black_y,
+        showscale: false, opacity: 1.0, type: 'scatter', mode: 'markers',
+        name: 'impossible datapoints',
+        marker: {size: 12, color: 'black', symbol: 'x'},
+    });
+
+
+    // diagonal line
+    data.push({
+        x: [x_min, x_max], y: [y_min, y_max],
+        showscale: false, opacity: 1.0, type: 'scatter', mode: 'line',
+        name: 'diagonal',
+        line: {size: 12, color: 'green'},
+    });
+
+    console.log(diag_1);
+    console.log(diag_2);
+    console.log(p_val);
+    var W = wasserstein_p(diag_1, diag_2, p_val);
+    var link_x = [];
+    var link_y = [];
+    for (let i = 0; i < W.matching.length; ++i) {
+        let from = W.matching[i][0];
+        let to   = W.matching[i][1];
+        if (from >= diag_1.length && to >= diag_2.length)
+            continue;
+        if (from >= diag_1.length) {
+            link_x.push((red_x[to] + red_y[to])/2.0);
+            link_y.push((red_x[to] + red_y[to])/2.0);
+        } else {
+            link_x.push(blue_x[from]);
+            link_y.push(blue_y[from]);
+        }
+        if (to >= diag_2.length) {
+            link_x.push((blue_x[from] + blue_y[from])/2.0);
+            link_y.push((blue_x[from] + blue_y[from])/2.0);
+        } else {
+            link_x.push(red_x[to]);
+            link_y.push(red_y[to]);
+        }
+        link_x.push(null);
+        link_y.push(null);
+    }
+
+    document.getElementById('wasserstein_d').innerHTML = W.distance.toFixed(3);
+
+    data.push({
+        x: link_x, y: link_y,
+        showscale: false, opacity: 1.0, type: 'scatter', mode: 'line',
+        name: 'connections',
+        line: {size: 3, color: 'black'},
+    });
+
+
+    var cell_for_plot = document.getElementById("for_right_plot");
+    var layout = {
+        title: 'Decision Tree',
+        xaxis: {'range': [x_min, x_max], 'domain': [0.0, 1.0], 'fixedrange': true},
+        yaxis: {'range': [y_min, y_max], 'domain': [0.0, 1.0], 'fixedrange': true},
+        width: 600,
+        height: 600,
+        autosize: false,
+        showlegend: false,
+        margin: {l: 0, r: 0, b: 0, t: 0 }
+    };
+    Plotly.newPlot(cell_for_plot, data, layout);
+}
+
+
+
+
+points = [];
+canvas_handles = {
+    handle_down: null,
+    handle_move: null,
+    handle_up:   null,
+};
+
+function add_pts(cls) {
+    canvas_handles.handle_down = function(x, y) { points.push([x, y, cls]); };
+    canvas_handles.handle_move = null;
+    canvas_handles.handle_up   = null;
+}
+function move_pts() {
+    canvas_handles.handle_down = function(x, y) {
+        for (var i = 0; i < points.length; ++i)
+            if ((x - points[i][0])*(x - points[i][0]) + (y - points[i][1])*(y - points[i][1]) < 0.001)
+            {
+                canvas_handles.handle_move = function(x, y) {
+                    if (x < x_min || x > x_max || y < y_min || y > y_max)
+                        return;
+                    points[i][0] = x;
+                    points[i][1] = y;
+                }
+                break;
+            }
+    };
+    canvas_handles.handle_move = null;
+    canvas_handles.handle_up   = function(x, y) { canvas_handles.handle_move = null; };
+}
+function del_pts() {
+    canvas_handles.handle_down = function(x, y) {
+        var idx = -1;
+        for (var i = 0; i < points.length; ++i)
+            if ((x - points[i][0])*(x - points[i][0]) + (y - points[i][1])*(y - points[i][1]) < 0.001)
+                idx = i;
+        points.splice(idx, 1);
+    };
+    canvas_handles.handle_move = null;
+    canvas_handles.handle_up   = null;
+}
+
+function extract_coordinates(event) {
+  event.stopPropagation();
+  var x = event.offsetX;
+  var y = event.offsetY;
+  var canvas = document.getElementById("paint");
+  var w = canvas.width;
+  var h = canvas.height;
+  var plot_x = x / w * (x_max - x_min) + x_min;
+  var plot_y = (1.0 - y / h) * (y_max - y_min) + y_min;
+  return [plot_x, plot_y];
+}
+
+function mdown_handle(event) {
+  var pts = extract_coordinates(event);
+
+  if (canvas_handles.handle_down)
+    canvas_handles.handle_down(pts[0], pts[1]);
+
+  loss_function_2d();
+}
+
+function mmove_handle(event) {
+    var pts = extract_coordinates(event);
+
+    if (canvas_handles.handle_move) {
+        canvas_handles.handle_move(pts[0], pts[1]);
+        loss_function_2d();
+    }
+}
+
+function mup_handle(event) {
+  var pts = extract_coordinates(event);
+
+  if (canvas_handles.handle_up)
+    canvas_handles.handle_up(pts[0], pts[1]);
+
+  loss_function_2d();
+}
+
+function adjust_canvas() {
+    var plt_div = document.getElementById('for_right_plot');
+    var el = plt_div.getElementsByClassName('xy')[0];
+    el = el.childNodes[0];
+    if (!el)
+        return [600, 600];
+    var rect = el.getBoundingClientRect();
+    var canvas = document.getElementById("paint");
+    //console.log(rect);
+    canvas.style.cssText = "position:absolute; top:" + parseInt(rect.top)
+                         + "px; left: " + parseInt(rect.left)
+                         + "px; width:" + parseInt(rect.width)
+                         + "px; height:" + parseInt(rect.height)
+                         + "px; z-index:1000;";
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    //loss_function_2d();
+    return [canvas.width, canvas.height];
+}
+
+function clear_field() {
+  points = [];
+  loss_function_2d();
+}
+
+
+function ker_change(val) {
+  if (val == 'linear') {
+    p_val = 1.0;
+  }
+  if (val == 'square') {
+    p_val = 2.0;
+  }
+  if (val == 'bottleneck') {
+  }
+  loss_function_2d();
+}
+
+
+
+</script>
+
+
+</head>
+
+<body>
+
+
+<div id="everything" style="height:600px; width:625px;">
+  <div id="for_right_plot">
+  </div>
+<div id="for_left_plot" style="position:absolute; top:50px; left:800px" >
+    <input type="radio" id="root_add_red" name="root_node" checked="checked" onchange="add_pts(0); loss_function_2d(); ">
+    <label for="root_add_red">Add red data point</label><br>
+    <input type="radio" id="root_add_blue" name="root_node" onchange="add_pts(1); loss_function_2d(); ">
+    <label for="root_add_blue">Add blue data point</label><br>
+    <input type="radio" id="root_move" name="root_node" onchange="move_pts(); loss_function_2d(); ">
+    <label for="root_move">Move data point</label><br>
+    <input type="radio" id="root_del" name="root_node" onchange="del_pts(); loss_function_2d(); ">
+    <label for="root_del">Delete data point</label><br>
+    <button type="button" onclick="clear_field();">clear</button><br>
+    p-value:
+    <select id="select_kernel" onchange="ker_change(this.value)">
+       <option value="linear">1</option>
+       <option value="square">2</option>
+       <!--<option value="bottleneck">bottleneck</option>-->
+    </select><br>
+    Wp = <label id='wasserstein_d'></label>
+</div>
+</div>
+
+<canvas id="paint" width=600 height=600
+    onmousedown="mdown_handle(event)"
+    onmousemove="mmove_handle(event)"
+    onmouseup="mup_handle(event)">
+</canvas>
+
+</body>
+
+<script>
+function init()
+{
+  loss_function_2d();
+  adjust_canvas();
+  add_pts(0);
+  setInterval(adjust_canvas, 1000);
+}
+init();
+</script>
+
+</html>
