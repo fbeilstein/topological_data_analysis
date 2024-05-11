@@ -16,6 +16,7 @@ let btn_random = document.getElementsByClassName("btnA1")[0];
 let btn_universe = document.getElementsByClassName("btnA2")[0];
 let btn_crystal = document.getElementsByClassName("btnA3")[0];
 let btn_gasket = document.getElementsByClassName("btnA4")[0];
+let btn_voids = document.getElementsByClassName("btnA5")[0];
 
 
 //colors
@@ -34,7 +35,7 @@ const axis_ticks_labels_color = "lightgray";
 const red_curve_color = "red";
 const blue_curve_color = "rgb(0, 70, 255)";
 const label_font  = "14px Verdana";
-const r_threshold = 50;
+const r_threshold = 10;
 
 
 canvas1.width  = 
@@ -351,7 +352,6 @@ function create_random_universe(n) {
 }
 
 function create_random_points(n) {
-  vertices = [];
   let W = canvas1.width;
   let H = canvas1.height;
   for (let i=0; i<n; ++i) {
@@ -904,6 +904,10 @@ btn_gasket.addEventListener('click', function(event) {
   create_gasket();
 });
 
+btn_voids.addEventListener('click', function(event) {
+  create_voids();
+});
+
 function change_glyph_btn1() {
   if(show_balls==true)
     btn1.style.backgroundImage = `url("./btn_1_on.png")`;
@@ -951,7 +955,6 @@ update();
 function create_gasket(n) {
   let W = canvas1.width;
   let H = canvas1.height;
- 
   for (let i=0; i<500; ) {
       let x_ = Math.random();
       let y_ = Math.random();
@@ -972,5 +975,35 @@ function create_gasket(n) {
         ++i;
       }
     }
+  recalculate_filtration();
+}
+
+function create_voids() {
+  let W = canvas1.width;
+  let H = canvas1.height;
+  let new_vertices = []
+  let voids = [];
+  let n_voids = 100;
+  for (let i=0; i<n_voids; ++i){
+    let void_r = Math.min(H, 1.2*lognormRandom(2.5, 0.7));
+    voids.push([Math.floor(Math.random() * W), Math.floor(Math.random() * H), void_r]);
+  }
+
+  for (let i=0; i<vertices.length; ++i) {
+      let flag = false;
+      let x = vertices[i].x;
+      let y = vertices[i].y;
+      for (let k=0; k<voids.length; ++k) {
+        if(Math.sqrt((x-voids[k][0])*(x-voids[k][0])+(y-voids[k][1])*(y-voids[k][1]))<voids[k][2]) 
+        {
+          flag = true;
+          break;
+        }
+      }
+      if(!flag)
+      new_vertices.push(new Vertice(x, y));
+    }
+    vertices = new_vertices
+
   recalculate_filtration();
 }

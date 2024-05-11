@@ -147,6 +147,10 @@ body{
     background-image: url("./gasket.png");
 }
 
+.btnA5{
+    background-image: url("./voids.png");
+}
+
 #info{
     width: var(--width);
     padding-top: 40px;
