@@ -346,8 +346,6 @@ function create_random_universe(n) {
       if(!flag)
       vertices.push(new Vertice(x, y));
     }
-    console.log(vertices)
-
   recalculate_filtration();
 }
 
@@ -373,7 +371,6 @@ function create_crystral_grid() {
       vertices.push(new Vertice(Math.floor(a.x*i+b.x*j), Math.floor(a.y*i+b.y*j)));
     }
   }
-  console.log(vertices);
   recalculate_filtration();
 }
 
@@ -888,7 +885,6 @@ btn3.addEventListener('click', function(event) {
 });
 
 btn_random.addEventListener('click', function(event) {
-  console.log("RANDM")
   create_random_points(n_random_points);
 });
 
@@ -952,8 +948,6 @@ btn_down.addEventListener('click', function(event) {
   recalculate_filtration();
 });
 
-update();
-
 function create_gasket(n) {
   let W = canvas1.width;
   let H = canvas1.height;
@@ -1009,3 +1003,5 @@ function create_voids() {
 
   recalculate_filtration();
 }
+
+update();
