@@ -143,6 +143,10 @@ body{
     background-image: url("./crystal.png");
 }
 
+.btnA4{
+    background-image: url("./gasket.png");
+}
+
 #info{
     width: var(--width);
     padding-top: 40px;

@@ -15,6 +15,7 @@ let btn_down = document.getElementsByClassName("btn_down")[0];
 let btn_random = document.getElementsByClassName("btnA1")[0];
 let btn_universe = document.getElementsByClassName("btnA2")[0];
 let btn_crystal = document.getElementsByClassName("btnA3")[0];
+let btn_gasket = document.getElementsByClassName("btnA4")[0];
 
 
 //colors
@@ -247,7 +248,7 @@ document.addEventListener('keydown', function (event) {
     out_mode = 2;
     change_glyph_btn3();
   } else if(event.key=="r") {
-    create_random_points(n_random_points);
+    create_gasket(n_random_points);
   } else if(event.key=="u") {
     create_random_universe();
   } else if(event.key=="c") {
@@ -899,6 +900,9 @@ btn_crystal.addEventListener('click', function(event) {
   create_crystral_grid();
 });
 
+btn_gasket.addEventListener('click', function(event) {
+  create_gasket();
+});
 
 function change_glyph_btn1() {
   if(show_balls==true)
@@ -944,3 +948,29 @@ btn_down.addEventListener('click', function(event) {
 
 update();
 
+function create_gasket(n) {
+  let W = canvas1.width;
+  let H = canvas1.height;
+ 
+  for (let i=0; i<500; ) {
+      let x_ = Math.random();
+      let y_ = Math.random();
+      let x = x_ * W;
+      let y = y_ * H;
+      let s_x = x_.toString(3);
+      let s_y = y_.toString(3);
+      let flag = true;
+      for (let k=0; k<8; ++k) {
+        if(s_x[k]=="1" && s_y[k]=="1") {
+          flag = false;
+          break;
+        }
+          
+      }
+      if(flag){
+        vertices.push(new Vertice(x, y));
+        ++i;
+      }
+    }
+  recalculate_filtration();
+}
