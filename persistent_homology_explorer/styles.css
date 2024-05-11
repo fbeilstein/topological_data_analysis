@@ -131,6 +131,18 @@ body{
     display: none;
 }
 
+.btnA1{
+    background-image: url("./random.png");
+}
+
+.btnA2{
+    background-image: url("./universe.png");
+}
+
+.btnA3{
+    background-image: url("./crystal.png");
+}
+
 #info{
     width: var(--width);
     padding-top: 40px;

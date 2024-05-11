@@ -11,6 +11,12 @@ let btn3 = document.getElementsByClassName("btn3")[0];
 let btn_up = document.getElementsByClassName("btn_up")[0];
 let btn_down = document.getElementsByClassName("btn_down")[0];
 
+
+let btn_random = document.getElementsByClassName("btnA1")[0];
+let btn_universe = document.getElementsByClassName("btnA2")[0];
+let btn_crystal = document.getElementsByClassName("btnA3")[0];
+
+
 //colors
 const my_green   = "rgb(144, 238, 144, 0.4)";
 const my_coral   = "rgb(240, 128, 128, 0.2)";
@@ -47,7 +53,7 @@ let show_balls = true;
 let is_cech_not_alpha = true;
 let out_mode = 0;
 let canvas_setup = {"r_max" : 100, "x_off" : 35, "y_off" : 35}; 
-const n_random_points = 10000;
+const n_random_points = 500;
 
 class Vertice {
   constructor(x, y) {
@@ -244,6 +250,8 @@ document.addEventListener('keydown', function (event) {
     create_random_points(n_random_points);
   } else if(event.key=="u") {
     create_random_universe();
+  } else if(event.key=="c") {
+    create_crystral_grid();
   }
 });
 
@@ -313,15 +321,14 @@ function create_random_universe(n) {
   vertices = [];
   let W = canvas1.width;
   let H = canvas1.height;
-  let N = Math.sqrt(n_random_points);
+  let N = Math.sqrt(10000)//n_random_points);
   let n_voids = 100;
   let voids = [];
   for (let i=0; i<n_voids; ++i){
-    let void_r = Math.min(H/20, lognormRandom(1.2, 4));
-    //console.log("r=",void_r)
+    let void_r = Math.min(H, 1.2*lognormRandom(2.5, 0.7));
     voids.push([Math.floor(Math.random() * W), Math.floor(Math.random() * H), void_r]);
   }
-console.log(voids)
+
   for (let i=0; i<N; ++i)
     for (let j=0; j<N; ++j) {
       let flag = false;
@@ -330,7 +337,6 @@ console.log(voids)
       for (let k=0; k<voids.length; ++k) {
         if(Math.sqrt((x-voids[k][0])*(x-voids[k][0])+(y-voids[k][1])*(y-voids[k][1]))<voids[k][2]) 
         {
-          //console.log(Math.sqrt((x-voids[k][0])*(x-voids[k][0])+(y-voids[k][1])*(y-voids[k][1])), voids[k][2])
           flag = true;
           break;
         }
@@ -339,6 +345,7 @@ console.log(voids)
       vertices.push(new Vertice(x, y));
     }
     console.log(vertices)
+
   recalculate_filtration();
 }
 
@@ -349,6 +356,23 @@ function create_random_points(n) {
   for (let i=0; i<n; ++i) {
     vertices.push(new Vertice(Math.floor(Math.random() * W), Math.floor(Math.random() * H)));
   }
+  recalculate_filtration();
+}
+
+function create_crystral_grid() {
+  vertices = [];
+  let rows = 10;
+  let columns = 10;
+  let a = new Vertice(50,0);
+  let angle = Math.PI/3;
+  let b = new Vertice(a.x/2, (a.x/2)*Math.tan(angle));
+  //let b = new Vertice(0, a.x);
+  for (let i=0; i<rows; ++i) {
+    for (let j=0; j<columns; ++j) {
+      vertices.push(new Vertice(Math.floor(a.x*i+b.x*j), Math.floor(a.y*i+b.y*j)));
+    }
+  }
+  console.log(vertices);
   recalculate_filtration();
 }
 
@@ -377,7 +401,7 @@ function draw_betti_curves(context, canvas, RB) {
   const y_off       = canvas_setup.y_off;
   const r_max       = canvas_setup.r_max;
   const x_ticks     = 10;
-  const y_max       = 1+Math.max(RB[0].max, RB[1].max);
+  const y_max       = 1+RB[1].max; //Math.max(RB[0].max, RB[1].max);
   const y_ticks     = y_max;
   const width_off   = canvas.width-x_off;
   const height_off  = canvas.height-2*y_off;
@@ -861,6 +885,20 @@ btn3.addEventListener('click', function(event) {
   out_mode = (out_mode+1)%3;
   change_glyph_btn3();
 });
+
+btn_random.addEventListener('click', function(event) {
+  console.log("RANDM")
+  create_random_points(n_random_points);
+});
+
+btn_universe.addEventListener('click', function(event) {
+  create_random_universe();
+});
+
+btn_crystal.addEventListener('click', function(event) {
+  create_crystral_grid();
+});
+
 
 function change_glyph_btn1() {
   if(show_balls==true)
