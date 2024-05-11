@@ -321,7 +321,7 @@ function create_random_universe(n) {
   vertices = [];
   let W = canvas1.width;
   let H = canvas1.height;
-  let N = Math.sqrt(10000)//n_random_points);
+  let N = Math.sqrt(600)//n_random_points);
   let n_voids = 100;
   let voids = [];
   for (let i=0; i<n_voids; ++i){
