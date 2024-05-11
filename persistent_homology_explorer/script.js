@@ -13,7 +13,7 @@ let btn_down = document.getElementsByClassName("btn_down")[0];
 
 
 let btn_random = document.getElementsByClassName("btnA1")[0];
-let btn_universe = document.getElementsByClassName("btnA2")[0];
+//let btn_universe = document.getElementsByClassName("btnA2")[0];
 let btn_crystal = document.getElementsByClassName("btnA3")[0];
 let btn_gasket = document.getElementsByClassName("btnA4")[0];
 let btn_voids = document.getElementsByClassName("btnA5")[0];
@@ -892,9 +892,11 @@ btn_random.addEventListener('click', function(event) {
   create_random_points(n_random_points);
 });
 
+/*
 btn_universe.addEventListener('click', function(event) {
   create_random_universe();
 });
+*/
 
 btn_crystal.addEventListener('click', function(event) {
   create_crystral_grid();
@@ -983,7 +985,7 @@ function create_voids() {
   let H = canvas1.height;
   let new_vertices = []
   let voids = [];
-  let n_voids = 100;
+  let n_voids = 50;
   for (let i=0; i<n_voids; ++i){
     let void_r = Math.min(H, 1.2*lognormRandom(2.5, 0.7));
     voids.push([Math.floor(Math.random() * W), Math.floor(Math.random() * H), void_r]);
