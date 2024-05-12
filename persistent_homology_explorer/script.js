@@ -307,6 +307,15 @@ canvas1.addEventListener('mousemove', function(event) {
   }
 });
 
+canvas2.addEventListener('mousemove', function(event) {
+  if(event.buttons==4) {
+    canvas_setup.r_max = Math.max(canvas_setup.r_max-0.08*event.movementX,0);
+    canvas_setup.y_max = Math.max(canvas_setup.y_max+0.2*event.movementY,0);
+    return 
+  }   
+  recalculate_filtration();
+});
+
 function recalculate_filtration() {
   alpha_filtration = create_filtration()
   L_data = get_barcodes(alpha_filtration);
