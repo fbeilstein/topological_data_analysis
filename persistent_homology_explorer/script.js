@@ -17,6 +17,7 @@ let btn_random = document.getElementsByClassName("btnA1")[0];
 let btn_crystal = document.getElementsByClassName("btnA3")[0];
 let btn_gasket = document.getElementsByClassName("btnA4")[0];
 let btn_voids = document.getElementsByClassName("btnA5")[0];
+let btn_solar = document.getElementsByClassName("btnA6")[0];
 
 
 //colors
@@ -56,11 +57,14 @@ let is_cech_not_alpha = true;
 let out_mode = 0;
 let canvas_setup = {"r_max" : 100, "x_off" : 35, "y_off" : 35}; 
 const n_random_points = 500;
+let animation = false;
 
 class Vertice {
-  constructor(x, y) {
+  constructor(x, y, vx, vy) {
     this.x = x;
     this.y = y;
+    this.vx = vx;
+    this.vy = vy;
   }
 }
 
@@ -148,11 +152,11 @@ function draw_connections(context, lines) {
   }
 }
 
-function draw_points(context) {
-    for(let i=0; i<vertices.length; ++i) {
+function draw_points(context, v, color) {
+    for(let i=0; i<v.length; ++i) {
       context.beginPath();
-      context.fillStyle = 'gray';
-      context.arc(vertices[i].x, vertices[i].y, 5, 0, 2*Math.PI);   
+      context.fillStyle = color;
+      context.arc(v[i].x, v[i].y, 5, 0, 2*Math.PI);   
       context.fill();
       context.closePath();
   } 
@@ -193,7 +197,8 @@ function clear_canvas(context, canvas) {
 function update() {
   let lines     = undefined; 
   let triangles = undefined;
-  
+  if(animation) move();
+
   if(is_cech_not_alpha){
     lines = get_lines_cech(radius);
     triangles = get_triangles_cech(radius);
@@ -208,10 +213,11 @@ function update() {
     draw_ball_outlines(context1);
     draw_balls(context1);
   }
-
+  if(animation) 
+    draw_points(context1, [new Vertice(canvas1.width/2, canvas1.height/2)], "red");
   draw_triangles(context1, triangles);
   draw_connections(context1, lines);
-  draw_points(context1);
+  draw_points(context1, vertices, "gray");
 
   if(L_data != undefined) {
     btn3.style.display = "block";
@@ -303,7 +309,7 @@ function recalculate_filtration() {
 }
 
 function add_point(x,y) {
-  vertices.push(new Vertice(x,y));
+  vertices.push(new Vertice(x,y,0,0));
   recalculate_filtration();
 }
 
@@ -884,26 +890,36 @@ btn3.addEventListener('click', function(event) {
   change_glyph_btn3();
 });
 
-btn_random.addEventListener('click', function(event) {
-  create_random_points(n_random_points);
-});
+
 
 /*
 btn_universe.addEventListener('click', function(event) {
   create_random_universe();
 });
 */
+btn_random.addEventListener('click', function(event) {
+  animation = false;
+  create_random_points(n_random_points);
+});
 
 btn_crystal.addEventListener('click', function(event) {
+  animation = false;
   create_crystral_grid();
 });
 
 btn_gasket.addEventListener('click', function(event) {
+  animation = false;
   create_gasket();
 });
 
 btn_voids.addEventListener('click', function(event) {
+  animation = false;
   create_voids();
+});
+
+btn_solar.addEventListener('click', function(event) {
+  animation = true;
+  generate_solar();
 });
 
 function change_glyph_btn1() {
@@ -1001,6 +1017,37 @@ function create_voids() {
     }
     vertices = new_vertices
 
+  recalculate_filtration();
+}
+
+function move(){
+  let dt=0.01;
+  for(let i=0; i<vertices.length; ++i) {
+    let center_x = canvas1.width/2;
+    let center_y = canvas1.height/2;
+    let r = 0.007*Math.sqrt((vertices[i].x-center_x)*(vertices[i].x-center_x)+(vertices[i].y-center_y)*(vertices[i].y-center_y));
+    console.log(r)
+    vertices[i].vx += -dt*(vertices[i].x-center_x)/(r*r*r);
+    vertices[i].vy += -dt*(vertices[i].y-center_y)/(r*r*r);
+    console.log(vertices[i].vx, vertices[i].vy)
+    vertices[i].x += dt*vertices[i].vx;
+    vertices[i].y += dt*vertices[i].vy;
+  }
+  recalculate_filtration();
+}
+
+function generate_solar() {
+  vertices = [];
+  let W = canvas1.width;
+  let H = canvas1.height;
+  for (let i=0; i<500; ++i) {
+    let angle = 2*Math.PI*Math.random();
+    let r = 150+200*Math.random();
+    let vx= (-1+2*Math.random())*100
+    let vy= (-1+2*Math.random())*100
+    vertices.push(new Vertice(canvas1.width/2+r*Math.cos(angle), canvas1.height/2+r*Math.sin(angle), vx, vy));
+  }
+  console.log(vertices);
   recalculate_filtration();
 }
 

@@ -31,6 +31,7 @@ body{
 
 #stats{
    display: grid;
+   width: 300px;
    align-items: center;
    font-family: Verdana;
    font-size: 14px;
@@ -149,6 +150,10 @@ body{
 
 .btnA5{
     background-image: url("./voids.png");
+}
+
+.btnA6{
+    background-image: url("./solar.png");
 }
 
 #info{
