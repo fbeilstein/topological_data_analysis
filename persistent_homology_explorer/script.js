@@ -10,6 +10,8 @@ let btn2 = document.getElementsByClassName("btn2")[0];
 let btn3 = document.getElementsByClassName("btn3")[0];
 let btn_up = document.getElementsByClassName("btn_up")[0];
 let btn_down = document.getElementsByClassName("btn_down")[0];
+let btn_y_up = document.getElementsByClassName("btn_y_up")[0];
+let btn_y_down = document.getElementsByClassName("btn_y_down")[0];
 
 
 let btn_random = document.getElementsByClassName("btnA1")[0];
@@ -55,7 +57,7 @@ let alpha_filtration = [];
 let show_balls = true;
 let is_cech_not_alpha = true;
 let out_mode = 0;
-let canvas_setup = {"r_max" : 100, "x_off" : 35, "y_off" : 35}; 
+let canvas_setup = {"r_max" : 100, "y_max": 200, "x_off" : 35, "y_off" : 35}; 
 const n_random_points = 500;
 let animation = false;
 
@@ -223,6 +225,8 @@ function update() {
     btn3.style.display = "block";
     btn_up.style.display = "block";
     btn_down.style.display = "block";
+    btn_y_up.style.display = "block";
+    btn_y_down.style.display = "block";
     switch (out_mode) {
       case 0:
             draw_betti_curves(context2, canvas2, [L_data[1], L_data[2]]);
@@ -404,8 +408,10 @@ function draw_betti_curves(context, canvas, RB) {
   const x_off       = canvas_setup.x_off;
   const y_off       = canvas_setup.y_off;
   const r_max       = canvas_setup.r_max;
+  const y_max_       = canvas_setup.y_max;
   const x_ticks     = 10;
-  const y_max       = 1+RB[1].max; //Math.max(RB[0].max, RB[1].max);
+  const y_max       = Math.max(y_max_, 1+RB[1].max); //Math.max(RB[0].max, RB[1].max);
+  
   const y_ticks     = y_max;
   const width_off   = canvas.width-x_off;
   const height_off  = canvas.height-2*y_off;
@@ -951,13 +957,28 @@ function change_glyph_btn3() {
 }
 
 btn_up.addEventListener('click', function(event) {
-  let new_r_max = canvas_setup.r_max; 
-  new_r_max = Math.max(r_threshold, Math.ceil(new_r_max*1.5));
-  canvas_setup.r_max = new_r_max;
+  let new_y_max = canvas_setup.y_max; 
+  new_y_max = Math.ceil(new_y_max*1.5);
+  canvas_setup.y_max = new_y_max;
   recalculate_filtration();
 });
 
 btn_down.addEventListener('click', function(event) {
+  let new_y_max = canvas_setup.y_max; 
+  new_y_max = Math.ceil(new_y_max/1.5);
+  canvas_setup.y_max = new_y_max;
+  recalculate_filtration();
+});
+
+btn_y_up.addEventListener('click', function(event) {
+  let new_r_max = canvas_setup.r_max; 
+  new_r_max = Math.max(r_threshold, Math.ceil(new_r_max*1.5));
+  canvas_setup.r_max = new_r_max;
+  recalculate_filtration();
+
+});
+
+btn_y_down.addEventListener('click', function(event) {
   let new_r_max = canvas_setup.r_max; 
   new_r_max = Math.max(r_threshold, Math.ceil(new_r_max/1.5));
   canvas_setup.r_max = new_r_max;

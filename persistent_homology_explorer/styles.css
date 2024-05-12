@@ -90,12 +90,30 @@ body{
     display : flex;
     flex-direction: column;
  }
+ 
+ #yscaling {
+    display : flex;
+    flex-direction: row;
+ }
+ 
 
 .btn_half{
     border-radius: 4px;
     border: 1px solid lightgrey;
     height: var(--btn_half_height);
     width: var(--btn_width);
+    background: white;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    display: none;
+}
+
+.btn_y_half{
+    border-radius: 4px;
+    border: 1px solid lightgrey;
+    height: var(--btn_width);
+    width: var(--btn_half_height);
     background: white;
     background-position: center;
     background-repeat: no-repeat;
@@ -111,7 +129,19 @@ body{
     background-image: url("./down.png");
 }
 
+.btn_y_up {
+    background-image: url("./left.png");
+}
+
+.btn_y_down {
+    background-image: url("./right.png");
+}
+
 .btn_half:hover{
+    border: 1px solid black;
+}
+
+.btn_y_half:hover{
     border: 1px solid black;
 }
 
