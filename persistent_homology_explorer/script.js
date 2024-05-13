@@ -625,19 +625,19 @@ function draw_y_axis(context, canvas, params) {
   const tick_length = x_off/4;
   const draw_lines = params.draw_lines;
 
-  context.lineWidth = 1;
+  context.lineWidth = 1;/*
   for(let i=0; i<=y_ticks; ++i) { //draw y-ticks and labels
     context.strokeStyle = axis_ticks_labels_color;
     context.fillStyle = axis_ticks_labels_color;
     context.beginPath();
-    context.moveTo(x_off-tick_length, canvas.height-y_off-(canvas.height-2*y_off)*i/y_ticks);
-    context.lineTo(x_off, canvas.height-y_off-(canvas.height-2*y_off)*i/y_ticks);
+   // context.moveTo(x_off-tick_length, canvas.height-y_off-(canvas.height-2*y_off)*i/y_ticks);
+   // context.lineTo(x_off, canvas.height-y_off-(canvas.height-2*y_off)*i/y_ticks);
     context.stroke();
     
     context.stroke();
     context.closePath();  
   }
-
+*/
   context.font = label_font;
   let delta = y_max/y_labels;
   context.beginPath();
