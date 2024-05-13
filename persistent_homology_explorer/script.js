@@ -55,7 +55,7 @@ let radius = 70;
 let L_data = undefined;
 let alpha_filtration = [];
 let show_balls = true;
-let is_cech_not_alpha = true;
+let is_cech_not_alpha = false;
 let out_mode = 0;
 let canvas_setup = {"r_max" : 100, "y_max": 200, "x_off" : 35, "y_off" : 35}; 
 const n_random_points = 500;
@@ -945,7 +945,7 @@ function change_glyph_btn1() {
 }
 
 function change_glyph_btn2() {
-  if(is_cech_not_alpha==true)
+  if(is_cech_not_alpha==false)
     btn2.style.backgroundImage = `url("./btn_2_on.png")`;
   else
     btn2.style.backgroundImage = `url("./btn_2_off.png")`;
@@ -1051,14 +1051,14 @@ function create_voids() {
 }
 
 function move(){
-  let dt=0.01;
+  let dt=0.04;
   for(let i=0; i<vertices.length; ++i) {
     let center_x = canvas1.width/2;
     let center_y = canvas1.height/2;
-    let r = 0.007*Math.sqrt((vertices[i].x-center_x)*(vertices[i].x-center_x)+(vertices[i].y-center_y)*(vertices[i].y-center_y));
+    let r = 0.07*Math.sqrt((vertices[i].x-center_x)*(vertices[i].x-center_x)+(vertices[i].y-center_y)*(vertices[i].y-center_y));
     console.log(r)
-    vertices[i].vx += -dt*(vertices[i].x-center_x)/(r*r*r);
-    vertices[i].vy += -dt*(vertices[i].y-center_y)/(r*r*r);
+    vertices[i].vx += -dt*(vertices[i].x-center_x);///(r*r*r);
+    vertices[i].vy += -dt*(vertices[i].y-center_y);///(r*r*r);
     console.log(vertices[i].vx, vertices[i].vy)
     vertices[i].x += dt*vertices[i].vx;
     vertices[i].y += dt*vertices[i].vy;
@@ -1072,9 +1072,9 @@ function generate_solar() {
   let H = canvas1.height;
   for (let i=0; i<500; ++i) {
     let angle = 2*Math.PI*Math.random();
-    let r = 150+200*Math.random();
-    let vx= (-1+2*Math.random())*100
-    let vy= (-1+2*Math.random())*100
+    let r = 150+500*Math.random();
+    let vx= (-1+2*Math.random())*50
+    let vy= (-1+2*Math.random())*50
     vertices.push(new Vertice(canvas1.width/2+r*Math.cos(angle), canvas1.height/2+r*Math.sin(angle), vx, vy));
   }
   console.log(vertices);
