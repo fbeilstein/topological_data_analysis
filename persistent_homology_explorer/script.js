@@ -215,12 +215,13 @@ function update() {
     draw_ball_outlines(context1);
     draw_balls(context1);
   }
-  if(animation) 
-    draw_points(context1, [new Vertice(canvas1.width/2, canvas1.height/2)], "red");
+
   draw_triangles(context1, triangles);
   draw_connections(context1, lines);
   draw_points(context1, vertices, "gray");
-
+  if(animation) 
+    draw_points(context1, [new Vertice(canvas1.width/2, canvas1.height/2)], "red");
+  
   if(L_data != undefined) {
     btn3.style.display = "block";
     btn_up.style.display = "block";
