@@ -221,7 +221,7 @@ function update() {
   draw_points(context1, vertices, "gray");
   if(animation) 
     draw_points(context1, [new Vertice(canvas1.width/2, canvas1.height/2)], "red");
-  
+
   if(L_data != undefined) {
     btn3.style.display = "block";
     btn_up.style.display = "block";
@@ -633,8 +633,7 @@ function draw_y_axis(context, canvas, params) {
     context.moveTo(x_off-tick_length, canvas.height-y_off-(canvas.height-2*y_off)*i/y_ticks);
     context.lineTo(x_off, canvas.height-y_off-(canvas.height-2*y_off)*i/y_ticks);
     context.stroke();
-    if(draw_lines)
-      context.lineTo(canvas.width, canvas.height-y_off-(canvas.height-2*y_off)*i/y_ticks);
+    
     context.stroke();
     context.closePath();  
   }
@@ -644,6 +643,10 @@ function draw_y_axis(context, canvas, params) {
   context.beginPath();
   for(let i=0; i<=y_labels; ++i) {
     context.fillText(parseInt(Math.ceil(delta*i)).toString(), 0, canvas.height+5-y_off-(canvas.height-2*y_off)*delta*i/y_max);
+    if(draw_lines){
+      context.moveTo(x_off, canvas.height-y_off-(canvas.height-2*y_off)*delta*i/y_max);
+      context.lineTo(canvas.width, canvas.height-y_off-(canvas.height-2*y_off)*delta*i/y_max);
+    }
     context.stroke();
   }
   
