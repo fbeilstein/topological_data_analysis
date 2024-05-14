@@ -644,8 +644,8 @@ function draw_y_axis(context, canvas, params) {
   for(let i=0; i<=y_labels; ++i) {
     context.fillText(parseInt(Math.ceil(delta*i)).toString(), 0, canvas.height+5-y_off-(canvas.height-2*y_off)*delta*i/y_max);
     if(draw_lines){
-      context.moveTo(x_off, canvas.height-y_off-(canvas.height-2*y_off)*delta*i/y_max);
-      context.lineTo(canvas.width, canvas.height-y_off-(canvas.height-2*y_off)*delta*i/y_max);
+      context.moveTo(x_off, Math.round(canvas.height-y_off-(canvas.height-2*y_off)*delta*i/y_max));
+      context.lineTo(canvas.width, Math.round(canvas.height-y_off-(canvas.height-2*y_off)*delta*i/y_max));
     }
     context.stroke();
   }
