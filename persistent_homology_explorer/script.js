@@ -8,6 +8,7 @@ const context2 = canvas2.getContext("2d");
 let btn1 = document.getElementsByClassName("btn1")[0];
 let btn2 = document.getElementsByClassName("btn2")[0];
 let btn3 = document.getElementsByClassName("btn3")[0];
+let btn4 = document.getElementsByClassName("btn4")[0];
 let btn_up = document.getElementsByClassName("btn_up")[0];
 let btn_down = document.getElementsByClassName("btn_down")[0];
 let btn_y_up = document.getElementsByClassName("btn_y_up")[0];
@@ -15,7 +16,6 @@ let btn_y_down = document.getElementsByClassName("btn_y_down")[0];
 
 
 let btn_random = document.getElementsByClassName("btnA1")[0];
-//let btn_universe = document.getElementsByClassName("btnA2")[0];
 let btn_crystal = document.getElementsByClassName("btnA3")[0];
 let btn_gasket = document.getElementsByClassName("btnA4")[0];
 let btn_voids = document.getElementsByClassName("btnA5")[0];
@@ -56,6 +56,7 @@ let L_data = undefined;
 let alpha_filtration = [];
 let show_balls = true;
 let is_cech_not_alpha = false;
+let is_log_scale = false;
 let out_mode = 0;
 let canvas_setup = {"r_max" : 100, "y_max": 200, "x_off" : 35, "y_off" : 35}; 
 const n_random_points = 500;
@@ -224,6 +225,7 @@ function update() {
 
   if(L_data != undefined) {
     btn3.style.display = "block";
+    btn4.style.display = "block";
     btn_up.style.display = "block";
     btn_down.style.display = "block";
     btn_y_up.style.display = "block";
@@ -423,7 +425,7 @@ function f(x,n) {
   }
 
   
-function draw_betti_curves(context, canvas, RB) {
+function draw_betti_curves(context, canvas, RB, scale = "regular") {
   const red = RB[0].data;
   if(red.length==0) return;
   const blue = RB[1].data;
@@ -432,9 +434,9 @@ function draw_betti_curves(context, canvas, RB) {
   const r_max       = canvas_setup.r_max;
   const y_max_       = canvas_setup.y_max;
   const x_ticks     = 10;
-  const y_max       = Math.max(y_max_, 1+RB[1].max); //Math.max(RB[0].max, RB[1].max);
+  const y_max       = Math.max(2, y_max_);//Math.max(y_max_, 1+RB[1].max); //Math.max(RB[0].max, RB[1].max);
   
-  const y_ticks     = y_max;
+  const y_ticks     = is_log_scale ? Math.log(y_max) : y_max;
   const width_off   = canvas.width-x_off;
   const height_off  = canvas.height-2*y_off;
  
@@ -447,11 +449,11 @@ function draw_betti_curves(context, canvas, RB) {
 
   context.strokeStyle = red_curve_color;
   context.beginPath();
-  let y_prev = red[0][1];
+  let y_prev = is_log_scale ? Math.log(red[0][1]) : red[0][1];  
   context.moveTo(x_off, (canvas.height-y_off-y_prev*height_off/y_ticks)); 
   for(let i=0; i<red.length; ++i) {    
     let x_curr = red[i][0];
-    let y_curr = red[i][1];
+    let y_curr = is_log_scale ? Math.log(red[i][1]) : red[i][1]; 
     context.lineTo(x_off+(width_off/r_max)*x_curr, (canvas.height-y_off-y_prev*height_off/y_ticks));   
     context.lineTo(x_off+(width_off/r_max)*x_curr, (canvas.height-y_off-y_curr*height_off/y_ticks)); 
     y_prev = y_curr;
@@ -482,7 +484,7 @@ function draw_betti_curves(context, canvas, RB) {
     context.moveTo(x_off, (canvas.height-y_off-y_prev*height_off/y_ticks)); 
     for(let i=0; i<blue.length; ++i) {    
       let x_curr = (blue[i][0]);
-      let y_curr = blue[i][1];
+      let y_curr = is_log_scale ? Math.log(blue[i][1]) : blue[i][1];
       //context.arc(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_curr*height_off/y_ticks), 2, 0, 2*Math.PI);   
       context.lineTo((x_off+(width_off/r_max)*x_curr), (canvas.height-y_off-y_prev*height_off/y_ticks));   
       context.lineTo((x_off+(width_off/r_max)*x_curr), (canvas.height-y_off-y_curr*height_off/y_ticks)); 
@@ -939,12 +941,19 @@ btn3.addEventListener('click', function(event) {
 });
 
 
-
-/*
-btn_universe.addEventListener('click', function(event) {
-  create_random_universe();
+btn4.addEventListener('click', function(event) {
+  is_log_scale = !(is_log_scale);
+  change_glyph_btn4();
 });
-*/
+
+function change_glyph_btn4(){
+  if(is_log_scale==true)
+    btn4.style.backgroundImage = `url("./log_on.png")`;
+  else
+    btn4.style.backgroundImage = `url("./log_off.png")`;
+} 
+
+
 btn_random.addEventListener('click', function(event) {
   animation = false;
   create_random_points(n_random_points);
@@ -1030,8 +1039,8 @@ btn_y_down.addEventListener('click', function(event) {
 function create_gasket(n) {
   let W = canvas1.width;
   let H = canvas1.height;
-  for (let x_=0.0; x_<1.0; x_+=1/120)
-    for (let y_=0.0; y_<1.0; y_+=1/120) {
+  for (let x_=0.0; x_<1.0; x_+=1/90)
+    for (let y_=0.0; y_<1.0; y_+=1/90) {
       //let x_ = Math.random();
       //let y_ = Math.random();
       let x = x_ * W;
@@ -1112,7 +1121,6 @@ function generate_solar() {
     let vy= (-1+2*Math.random())*50
     vertices.push(new Vertice(canvas1.width/2+r*Math.cos(angle), canvas1.height/2+r*Math.sin(angle), vx, vy));
   }
-  console.log(vertices);
   recalculate_filtration();
 }
 

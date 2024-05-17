@@ -162,6 +162,11 @@ body{
     display: none;
 }
 
+.btn4{
+    background-image: url("./log_off.png");
+    display: none;
+}
+
 .btnA1{
     background-image: url("./random.png");
 }
