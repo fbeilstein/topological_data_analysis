@@ -373,7 +373,7 @@ function create_random_points(n) {
   let W = canvas1.width;
   let H = canvas1.height;
   for (let i=0; i<n; ++i) {
-    vertices.push(new Vertice(Math.floor(Math.random() * W), Math.floor(Math.random() * H)));
+    vertices.push(new Vertice(Math.random() * W, Math.random() * H));
   }
   recalculate_filtration();
 }
@@ -411,6 +411,18 @@ canvas1.addEventListener('dblclick', function(event) {
     add_point(x,y);
 });
 
+function f(x,n) {
+  let x_max = 14;
+  let M = 110;
+  let alpha = 4;
+  let b = 2*1000*x_max*x_max/alpha;
+  let A = Math.exp(alpha/2)*M/(1000 * Math.pow(alpha*b/2, alpha/2));
+  console.log("b",b)
+  console.log("A",A)
+  return A*Math.pow(n,1+(alpha/2)) * Math.pow(x, alpha) * Math.exp(-n*x*x/b)
+  }
+
+  
 function draw_betti_curves(context, canvas, RB) {
   const red = RB[0].data;
   if(red.length==0) return;
@@ -436,28 +448,45 @@ function draw_betti_curves(context, canvas, RB) {
   context.strokeStyle = red_curve_color;
   context.beginPath();
   let y_prev = red[0][1];
-  context.moveTo(x_off, Math.round(canvas.height-y_off-y_prev*height_off/y_ticks)); 
+  context.moveTo(x_off, (canvas.height-y_off-y_prev*height_off/y_ticks)); 
   for(let i=0; i<red.length; ++i) {    
-    let x_curr = Math.round(red[i][0]);
+    let x_curr = red[i][0];
     let y_curr = red[i][1];
-    context.lineTo(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_prev*height_off/y_ticks));   
-    context.lineTo(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_curr*height_off/y_ticks)); 
+    context.lineTo(x_off+(width_off/r_max)*x_curr, (canvas.height-y_off-y_prev*height_off/y_ticks));   
+    context.lineTo(x_off+(width_off/r_max)*x_curr, (canvas.height-y_off-y_curr*height_off/y_ticks)); 
     y_prev = y_curr;
   } 
   context.stroke();
   context.closePath();
-
+/*
+  if(blue.length>0) {
+    context.fillStyle = "red";
+    y_prev = 0;
+    //context.moveTo(x_off, Math.round(canvas.height-y_off-y_prev*height_off/y_ticks)); 
+    for(let i=0; i+1<blue.length; ++i) {    
+      context.beginPath();
+      let x_curr = Math.round(blue[i][0]);
+      let yy = f(x_curr,vertices.length);
+      console.log(x_curr, yy)
+      context.arc(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-yy*height_off/y_ticks), 2, 0, 2*Math.PI);   
+      context.fill();
+      context.closePath();
+    }    
+  }
+*/
   if(blue.length>0) {
     if(blue[blue.length-1][1]==0) blue.push([canvas_setup.r_max,0]);
     context.strokeStyle = blue_curve_color;
     context.beginPath();
     y_prev = 0;
-    context.moveTo(x_off, Math.round(canvas.height-y_off-y_prev*height_off/y_ticks)); 
+    context.moveTo(x_off, (canvas.height-y_off-y_prev*height_off/y_ticks)); 
     for(let i=0; i<blue.length; ++i) {    
-      let x_curr = Math.round(blue[i][0]);
+      let x_curr = (blue[i][0]);
       let y_curr = blue[i][1];
-      context.lineTo(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_prev*height_off/y_ticks));   
-      context.lineTo(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_curr*height_off/y_ticks)); 
+      //context.arc(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_curr*height_off/y_ticks), 2, 0, 2*Math.PI);   
+      context.lineTo((x_off+(width_off/r_max)*x_curr), (canvas.height-y_off-y_prev*height_off/y_ticks));   
+      context.lineTo((x_off+(width_off/r_max)*x_curr), (canvas.height-y_off-y_curr*height_off/y_ticks)); 
+      //context.fill();
       y_prev = y_curr;
     } 
     context.stroke();
@@ -1001,15 +1030,17 @@ btn_y_down.addEventListener('click', function(event) {
 function create_gasket(n) {
   let W = canvas1.width;
   let H = canvas1.height;
-  for (let i=0; i<500; ) {
-      let x_ = Math.random();
-      let y_ = Math.random();
+  for (let x_=0.0; x_<1.0; x_+=1/120)
+    for (let y_=0.0; y_<1.0; y_+=1/120) {
+      //let x_ = Math.random();
+      //let y_ = Math.random();
       let x = x_ * W;
       let y = y_ * H;
       let s_x = x_.toString(3);
       let s_y = y_.toString(3);
       let flag = true;
-      for (let k=0; k<8; ++k) {
+      let depth = 4;
+      for (let k=0; k<2+depth; ++k) {
         if(s_x[k]=="1" && s_y[k]=="1") {
           flag = false;
           break;
@@ -1018,7 +1049,7 @@ function create_gasket(n) {
       }
       if(flag){
         vertices.push(new Vertice(x, y));
-        ++i;
+        //++i;
       }
     }
   recalculate_filtration();
