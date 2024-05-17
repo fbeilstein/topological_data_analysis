@@ -292,7 +292,7 @@ function move_scanning_line(canvas, event) {
   let x = event.offsetX;
   let y = event.offsetY;
   let padding = parseInt(getComputedStyle(canvas).getPropertyValue('padding-left'));
-  radius = canvas_setup.r_max * Math.max(0, x - padding-canvas_setup.x_off)/(canvas2.width-canvas_setup.x_off);
+  radius = canvas_setup.r_max * Math.max(0, x - padding-canvas_setup.x_off)/(canvas2.width-padding-canvas_setup.x_off);
 }
 
 canvas1.addEventListener('mousemove', function(event) {
@@ -610,7 +610,7 @@ function draw_scanning_line(context, canvas, params) {
   context.stroke();
   context.closePath();
   context.fillStyle = scan_line_color;
-  context.fillText(parseInt(radius), x_off-10+((canvas.width-x_off)/x_max)*radius, y_off-3);
+  context.fillText((radius).toFixed(1).toString(), x_off-10+((canvas.width-x_off)/x_max)*radius, y_off-3);
 }
 
 function draw_x_axis(context, canvas, params) {
@@ -628,7 +628,7 @@ function draw_x_axis(context, canvas, params) {
     context.moveTo(x_off+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off+tick_length);
     context.lineTo(x_off+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off);
     context.font = label_font;
-    context.fillText((Math.round(x_max*i/x_ticks)).toString(), x_off-15+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off/4);
+    context.fillText(((x_max*i/x_ticks).toFixed(1)).toString(), x_off-15+(canvas.width - x_off)*i/x_ticks, canvas.height-y_off/4);
     context.stroke();
     if(draw_lines)
       context.lineTo(x_off+(canvas.width - x_off)*i/x_ticks, y_off);
