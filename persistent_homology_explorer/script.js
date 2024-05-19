@@ -9,6 +9,7 @@ let btn1 = document.getElementsByClassName("btn1")[0];
 let btn2 = document.getElementsByClassName("btn2")[0];
 let btn3 = document.getElementsByClassName("btn3")[0];
 let btn4 = document.getElementsByClassName("btn4")[0];
+let btn5 = document.getElementsByClassName("btn5")[0];
 let btn_up = document.getElementsByClassName("btn_up")[0];
 let btn_down = document.getElementsByClassName("btn_down")[0];
 let btn_y_up = document.getElementsByClassName("btn_y_up")[0];
@@ -56,11 +57,16 @@ let L_data = undefined;
 let alpha_filtration = [];
 let show_balls = true;
 let is_cech_not_alpha = false;
+let is_acc = false;
 let is_log_scale = false;
 let out_mode = 0;
 let canvas_setup = {"r_max" : 100, "y_max": 200, "x_off" : 35, "y_off" : 35}; 
-const n_random_points = 500;
+const n_random_points = 1000;
 let animation = false;
+
+let acc = (new Array(50*300))
+acc.fill(0);
+let n_acc=0;
 
 class Vertice {
   constructor(x, y, vx, vy) {
@@ -226,6 +232,7 @@ function update() {
   if(L_data != undefined) {
     btn3.style.display = "block";
     btn4.style.display = "block";
+    btn5.style.display = "block";
     btn_up.style.display = "block";
     btn_down.style.display = "block";
     btn_y_up.style.display = "block";
@@ -372,12 +379,35 @@ function create_random_universe(n) {
 }
 
 function create_random_points(n) {
+  vertices = []
+
   let W = canvas1.width;
   let H = canvas1.height;
   for (let i=0; i<n; ++i) {
     vertices.push(new Vertice(Math.random() * W, Math.random() * H));
   }
   recalculate_filtration();
+  if(is_acc){
+    add_to_accumulator();
+  }
+}
+
+function add_to_accumulator(){
+  n_acc += 1;
+  let blue = L_data[2].data;
+  let x_prev=0;
+  let y_prev=0;
+  for(let i=0; i+1<blue.length; ++i){
+    if(Math.round(blue[i+1][0]*300) == Math.round(blue[i][0]*300)) continue;
+    let x = Math.round(blue[i][0]*300);
+    let y = blue[i][1];
+    for( ; x_prev<x; x_prev++){
+      acc[x_prev] += y_prev;
+    }
+    acc[x] += y;
+    y_prev = y;
+    x_prev = x+1;
+  }
 }
 
 function create_crystral_grid() {
@@ -413,19 +443,40 @@ canvas1.addEventListener('dblclick', function(event) {
     add_point(x,y);
 });
 
+/*
 function f(x,n) {
   let x_max = 14;
   let M = 110;
-  let alpha = 4;
+  let alpha = 5;
   let b = 2*1000*x_max*x_max/alpha;
   let A = Math.exp(alpha/2)*M/(1000 * Math.pow(alpha*b/2, alpha/2));
   console.log("b",b)
   console.log("A",A)
   return A*Math.pow(n,1+(alpha/2)) * Math.pow(x, alpha) * Math.exp(-n*x*x/b)
   }
+*/
 
-  
-function draw_betti_curves(context, canvas, RB, scale = "regular") {
+function s(x){
+  if(x<=0 ) return 0;
+  if(x>=1) return 1;
+  return 3*x^2-2*x^3;
+}
+
+function f(x,n){
+  let beta = 3;
+  let a = 6.7e-6;//0.0000012;//1000*14*14*14*14; //0.008;//0.000033;
+  let b = 3*Math.pow(1000,3/2)*14*14*14*(1+a*1000*14*14)/(4+6*a*1000*14*14); //*(//3.50765e+10;//1000*1000*14*14*14*14; //2*1000*14*14*(1+a*14*Math.pow(1000, 0.5))/(4+5*14*a*Math.pow(1000, 0.5));//1000 *(14*14)*(1+a*1000*14*14)/(2+3*a*1000*14*14);//Math.pow(1000, beta) * Math.pow(14,2*beta) * beta/2;
+  let y = n *x * x;
+return (6.90286e-12)*n*(y*y+a*y*y*y)*Math.exp(-Math.pow(y,3/2)/b);
+}
+ 
+function g(x,n){
+  let beta = 3;
+  let b = 70400;//Math.pow(1000, beta) * Math.pow(14,2*beta) * beta/2;
+  return (6.90286e-12)*Math.exp(-n*x*x/1000);//(6.90286e-12)*n*n*n*x*x*x*x;
+}
+
+function draw_betti_curves(context, canvas, RB) {
   const red = RB[0].data;
   if(red.length==0) return;
   const blue = RB[1].data;
@@ -467,15 +518,15 @@ function draw_betti_curves(context, canvas, RB, scale = "regular") {
     //context.moveTo(x_off, Math.round(canvas.height-y_off-y_prev*height_off/y_ticks)); 
     for(let i=0; i+1<blue.length; ++i) {    
       context.beginPath();
-      let x_curr = Math.round(blue[i][0]);
-      let yy = f(x_curr,vertices.length);
-      console.log(x_curr, yy)
-      context.arc(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-yy*height_off/y_ticks), 2, 0, 2*Math.PI);   
+      let x_curr = blue[i][0];
+      let yy = is_log_scale ? Math.log(f(x_curr,vertices.length)) : f(x_curr,vertices.length);
+      
+      context.arc((x_off+(width_off/r_max)*x_curr), (canvas.height-y_off-yy*height_off/y_ticks), 2, 0, 2*Math.PI);   
       context.fill();
       context.closePath();
     }    
   }
-*/
+  */
   if(blue.length>0) {
     if(blue[blue.length-1][1]==0) blue.push([canvas_setup.r_max,0]);
     context.strokeStyle = blue_curve_color;
@@ -483,8 +534,9 @@ function draw_betti_curves(context, canvas, RB, scale = "regular") {
     y_prev = 0;
     context.moveTo(x_off, (canvas.height-y_off-y_prev*height_off/y_ticks)); 
     for(let i=0; i<blue.length; ++i) {    
-      let x_curr = (blue[i][0]);
-      let y_curr = is_log_scale ? Math.log(blue[i][1]) : blue[i][1];
+      let x_curr = blue[i][0];
+      
+      let y_curr = is_log_scale ? Math.log(blue[i][1]) : (blue[i][1]);
       //context.arc(Math.round(x_off+(width_off/r_max)*x_curr), Math.round(canvas.height-y_off-y_curr*height_off/y_ticks), 2, 0, 2*Math.PI);   
       context.lineTo((x_off+(width_off/r_max)*x_curr), (canvas.height-y_off-y_prev*height_off/y_ticks));   
       context.lineTo((x_off+(width_off/r_max)*x_curr), (canvas.height-y_off-y_curr*height_off/y_ticks)); 
@@ -493,6 +545,21 @@ function draw_betti_curves(context, canvas, RB, scale = "regular") {
     } 
     context.stroke();
     context.closePath();
+  }
+  if(is_acc){
+    if(acc.length>0) {
+      context.fillStyle = "black";
+      y_prev = 0;
+      //context.moveTo(x_off, Math.round(canvas.height-y_off-y_prev*height_off/y_ticks)); 
+      for(let i=0; i<acc.length; ++i) {    
+        context.beginPath();
+        let x_curr = i * 1/300;
+        let yy = is_log_scale ? Math.log(acc[i]/n_acc) : acc[i]/n_acc;
+        context.arc((x_off+(width_off/r_max)*x_curr), (canvas.height-y_off-yy*height_off/y_ticks), 1, 0, 2*Math.PI);   
+        context.fill();
+        context.closePath();
+      }    
+    }
   }
 }
 
@@ -953,6 +1020,23 @@ function change_glyph_btn4(){
     btn4.style.backgroundImage = `url("./log_off.png")`;
 } 
 
+btn5.addEventListener('click', function(event) {
+  is_acc = !(is_acc);
+  if(is_acc)
+    {
+      acc.fill(0);
+      n_acc = 0;   
+      add_to_accumulator();
+    }
+  change_glyph_btn5();
+});
+
+function change_glyph_btn5(){
+  if(is_acc==true)
+    btn5.style.backgroundImage = `url("./acc_on.png")`;
+  else
+    btn5.style.backgroundImage = `url("./acc_off.png")`;
+} 
 
 btn_random.addEventListener('click', function(event) {
   animation = false;
@@ -1100,10 +1184,8 @@ function move(){
     let center_x = canvas1.width/2;
     let center_y = canvas1.height/2;
     let r = 0.07*Math.sqrt((vertices[i].x-center_x)*(vertices[i].x-center_x)+(vertices[i].y-center_y)*(vertices[i].y-center_y));
-    console.log(r)
     vertices[i].vx += -dt*(vertices[i].x-center_x);///(r*r*r);
     vertices[i].vy += -dt*(vertices[i].y-center_y);///(r*r*r);
-    console.log(vertices[i].vx, vertices[i].vy)
     vertices[i].x += dt*vertices[i].vx;
     vertices[i].y += dt*vertices[i].vy;
   }

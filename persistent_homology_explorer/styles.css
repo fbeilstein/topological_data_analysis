@@ -167,6 +167,11 @@ body{
     display: none;
 }
 
+.btn5{
+    background-image: url("./acc_off.png");
+    display: none;
+}
+
 .btnA1{
     background-image: url("./random.png");
 }
