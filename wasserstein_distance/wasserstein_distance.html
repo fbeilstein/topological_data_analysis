@@ -7,11 +7,16 @@
 
 <script type="application/javascript">
 
+
 function L_inf_p(x, y, p) {
-    return Math.pow(Math.max(Math.abs(x[0] - y[0]), Math.abs(x[1] - y[1])), p);
+    if (isFinite(p))
+        return Math.pow(Math.max(Math.abs(x[0] - y[0]), Math.abs(x[1] - y[1])), p);
+    return Math.max(Math.abs(x[0] - y[0]), Math.abs(x[1] - y[1]));
 }
 function L_inf_p_diag(x, p) {
-    return Math.pow(Math.abs(x[0] - x[1]) / 2.0, p);
+    if (isFinite(p))
+        return Math.pow(Math.abs(x[0] - x[1]) / 2.0, p);
+    return Math.abs(x[0] - x[1]) / 2.0;
 }
 
 function diags_to_matrix(dX, dY, p) {
@@ -40,14 +45,54 @@ function wasserstein_p(diag_1, diag_2, p) {
         return {'matching': [], 'distance': 0.0};
     var matrix = diags_to_matrix(diag_1, diag_2, p);
     var m = new Munkres();
-    var indices = m.compute(matrix);
-    var total = 0;
-    for (var i = 0; i < indices.length; ++i) {
-      var row = indices[i][0], col = indices[i][1];
-      var value = matrix[row][col];
-      total += value;
+    if (isFinite(p))
+    {
+        var indices = m.compute(matrix);    
+    } else {
+        let all_weights = Array.from(new Set(matrix.flat())).sort((a, b) => a - b);
+        let L = 0;
+        let R = all_weights.length - 1;
+        let M = 0;
+        while (L < R)
+        {
+            M = Math.floor((R + L) / 2);
+            let thr = all_weights[M];
+            let thr_matrix = matrix.map(row => row.map(value => (value > thr ? 0 : -1)));
+            let probe = m.compute(thr_matrix);
+            let edg_w = 0;
+            for (let i = 0; i < probe.length; ++i) 
+            {
+                let row = probe[i][0], col = probe[i][1];
+                let value = thr_matrix[row][col];
+                edg_w += value;
+            }
+            if (-edg_w == matrix.length)
+                R = M;
+            else
+                L = M + 1;
+        }
+        let thr_matrix = matrix.map(row => row.map(value => (value > all_weights[L] ? 0 : -1)));
+        var indices = m.compute(thr_matrix);
     }
-    return {'matching': indices, 'distance': Math.pow(total, 1.0/p)}
+
+    if (isFinite(p))
+    {
+        var total = 0;
+        for (var i = 0; i < indices.length; ++i) {
+          var row = indices[i][0], col = indices[i][1];
+          var value = matrix[row][col];
+          total += value;
+        }        
+        return {'matching': indices, 'distance': Math.pow(total, 1.0/p)};
+    } else {
+        var max = 0;
+        for (var i = 0; i < indices.length; ++i) {
+          var row = indices[i][0], col = indices[i][1];
+          var value = matrix[row][col];
+          if (value > max) max = value;
+        }
+        return {'matching': indices, 'distance': max};
+    }
 }
 
 var x_min = 0.0;
@@ -68,6 +113,8 @@ function loss_function_2d() {
     var black_y = [];
     var diag_1 = [];
     var diag_2 = [];
+
+
     for (var i = 0; i < points.length; ++i) {
         if (points[i][1] > points[i][0]) {
             if (points[i][2]) {
@@ -288,6 +335,7 @@ function ker_change(val) {
     p_val = 2.0;
   }
   if (val == 'bottleneck') {
+    p_val = Infinity;
   }
   loss_function_2d();
 }
@@ -319,7 +367,7 @@ function ker_change(val) {
     <select id="select_kernel" onchange="ker_change(this.value)">
        <option value="linear">1</option>
        <option value="square">2</option>
-       <!--<option value="bottleneck">bottleneck</option>-->
+       <option value="bottleneck">∞</option>
     </select><br>
     Wp = <label id='wasserstein_d'></label>
 </div>
