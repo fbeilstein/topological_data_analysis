@@ -1,6 +1,6 @@
 # Topological Data Analysis
 
-##Lectures
+## Lectures
 * [Lecture 1, Introduction to Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_1_introduction_to_topology.ipynb)
 
 ## Demos
