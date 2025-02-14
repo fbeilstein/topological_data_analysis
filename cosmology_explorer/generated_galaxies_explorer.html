@@ -1,0 +1,295 @@
+<html>
+<head>
+	<script src="https://cdn.jsdelivr.net/npm/fflate@0.8.0/umd/index.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        #radios{
+            -webkit-user-select: none;
+            -ms-user-select: none; 
+            user-select: none; 
+        }
+        .container {
+            display: flex;
+            align-items: center;
+            gap: 20px; /* Adds space between divs */
+        }
+    </style>
+</head>
+    <body onload="preloadData()">
+
+        <div id="download">
+            <div style="width: 300px; border: 1px solid gray;">
+                <div id="progress-bar" style="height: 15px; width: 0%; background: lightgreen;"></div>
+            </div>
+            <p id="status" style="font-size: 14px; font-family: Arial, sans-serif; color: #333;">Waiting...</p>
+        </div>
+
+        <div id="stage">
+            <div id="radios" style="font-size: 14px; font-family: Arial, sans-serif; color: #333;">
+                <label><input type="radio" name="option" value="option1" checked> LLE</label>
+                <label><input type="radio" name="option" value="option2"> UMAP </label>
+                <label><input type="radio" name="option" value="option3"> ISOMAP </label>
+                <label><input type="radio" name="option" value="option4"> TSNE </label>
+                <label><input type="radio" name="option" value="option5"> PCA </label>
+        </div> 
+            <div class="container">
+                <div id="plot" width="700" height="700"></div>
+                <canvas id="myImage" width="120" style="font-size: 14px; font-family: Arial, sans-serif; color: #333;">
+            </div>
+        </div>
+            
+<script>
+
+document.querySelectorAll('input[name="option"]').forEach(radio => {
+    radio.addEventListener("change", radio_callback);
+});
+
+
+function openDB() {
+    return new Promise((resolve, reject) => {
+        let request = indexedDB.open("ImageCache", 1);
+        request.onupgradeneeded = () => request.result.createObjectStore("images");
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = reject;
+    });
+}
+
+async function saveToIndexedDB(key, url) {
+    let db = await openDB();
+    let tx = db.transaction("images", "readwrite");
+    tx.objectStore("images").put(url, key);
+}
+
+async function checkIndexedDB(key) {
+    let db = await openDB();
+    return new Promise((resolve) => {
+        let tx = db.transaction("images", "readonly");
+        let request = tx.objectStore("images").get(key);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(null);
+    });
+}
+
+function mergeChunks(chunks) {
+    // Calculate total size
+    let totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+
+    // Preallocate buffer
+    let mergedArray = new Uint8Array(totalLength);
+    
+    // Fill buffer efficiently
+    let offset = 0;
+    for (let chunk of chunks) {
+        mergedArray.set(chunk, offset);
+        offset += chunk.length;
+    }
+
+    return mergedArray;
+}
+
+
+async function fetchZipWithProgress(url, onProgress) {
+    let response = await fetch(url);
+    let contentLength = response.headers.get("Content-Length");
+
+    if (!contentLength) throw new Error("Cannot track progress");
+    contentLength = parseInt(contentLength);
+
+    let reader = response.body.getReader();
+    let receivedLength = 0;
+    let chunks = [];
+
+    while (true) {
+        let { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        receivedLength += value.length;
+        
+        // Call progress callback
+        onProgress((receivedLength / contentLength) * 100);
+    }
+
+    return mergeChunks(chunks);
+}
+
+
+var jsonFiles = {};
+
+async function extractImagesWithProgress(zipBuffer, onExtract) {
+    const zipData = new Uint8Array(zipBuffer);
+    const files = fflate.unzipSync(zipData);
+    let count = 0;
+
+    for (let filename of Object.keys(files)) {
+        let fileData = files[filename];
+
+        if (filename.endsWith(".json")) {
+            // Process JSON files
+            let text = new TextDecoder("utf-8").decode(fileData);
+            try {
+                jsonFiles[filename] = JSON.parse(text);
+            } catch (error) {
+                console.error(`Error parsing JSON file ${filename}:`, error);
+            }
+        }
+
+        count++;
+        onExtract(count); // Update UI with number of extracted files
+    }
+
+    return jsonFiles; // Return JSON data for further use
+}
+
+
+
+function plotData(data) {           
+            const labels = data.map(point => point.label);
+            const uniqueLabels = [...new Set(labels)];
+            
+            // Создаем один trace для каждой метки
+            const traces = uniqueLabels.map(label => {
+                const mask = data.map(point => point.label === label);
+                const labelCoords = data.filter(point => point.label === label);
+                const xLabel = labelCoords.map(point => point.x);
+                const yLabel = labelCoords.map(point => point.y);
+                const zLabel = labelCoords.map(point => point.z);
+                const customDataLabel = labelCoords.map(point => [point.ax_x, point.ax_y, point.angle]);
+
+                const labels = ["round", "in_between", "cigar"]
+                return {
+                    x: xLabel,
+                    y: yLabel,
+                    z: zLabel,
+                    mode: 'markers',
+                    marker: {
+                        size: 2,
+                        color: labelCoords.map(point => ["red", "green", "blue"][point.label-1]),
+                    },
+                    type: 'scatter3d',
+                    text: labelCoords.map(point => point.label),
+                    hoverinfo: 'text',
+                    customdata: customDataLabel, 
+                    name: `${labels[label-1]}`, 
+                    legendgroup: `group_${label}`, 
+                    showlegend: true, 
+                    visible: true
+                };
+            });
+
+            const layout = {
+                margin: { l: 0, r: 0, b: 0, t: 0 },
+                legend: {
+                    x: 0.8, 
+                    y: 0.8
+                }
+            };
+
+            Plotly.newPlot('plot', traces, layout);
+
+            document.getElementById('plot').on('plotly_hover', function(eventData) {
+                if (eventData.points.length > 0) {
+                    const pointData = eventData.points[0];
+                    const ax_x = pointData.customdata[0];  
+                    const ax_y = pointData.customdata[1];  
+                    const angle = pointData.customdata[2];    
+                    updateCanvas(ax_x, ax_y, angle);
+                }
+            });
+        }
+
+
+
+        function updateCanvas(ax_x, ax_y, angle) {
+            const canvas = document.getElementById('myImage');
+            const ctx = canvas.getContext('2d');
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = -60; i < 60; i++) {
+                for (let j = -60; j < 60; j++) {
+                    const xRot = i * Math.cos(angle) + j * Math.sin(angle);
+                    const yRot = i * Math.sin(angle) - j * Math.cos(angle);
+                    const value = Math.pow(1+((xRot * xRot) / (ax_x*ax_x) + (yRot * yRot) / (ax_y*ax_y)), -2.5);
+                    const color = Math.floor(value * 255);
+                    ctx.fillStyle = `rgb(${color},${color},${color})`;
+                    ctx.fillRect(i + 60, j + 60, 1, 1);
+                }
+            }
+        }
+
+/*
+async function extractImagesWithProgress(zipBuffer, onExtract) {
+    const zipData = new Uint8Array(zipBuffer);
+    const files = fflate.unzipSync(zipData);
+    let count = 0;
+
+    for (let filename of Object.keys(files)) {
+        console.log(filename)
+        let blob = new Blob([files[filename]], { type: "image/png" });
+        let url = URL.createObjectURL(blob);
+        await saveToIndexedDB(filename, url);
+
+        count++;
+        onExtract(count); // Update UI with number of extracted images
+    }
+}
+*/
+
+
+async function loadZipWithUI(url) {
+    document.getElementById("status").innerText = "Downloading ZIP...";
+
+    let zipBuffer = await fetchZipWithProgress(url, (progress) => {
+        document.getElementById("progress-bar").style.width = progress + "%";
+    });
+
+    await extractImagesWithProgress(zipBuffer, (count) => {
+        console.log(`Extracted: ${count} files`);
+    });
+
+
+    document.getElementById("status").innerText = "Done!";
+    
+    document.getElementById("download").style.display = "none";
+    document.getElementById("stage").style.display = "";
+
+    plotData(jsonFiles["ISO_fake.json"]);
+}
+
+
+
+async function loadImage() {
+    let key = document.getElementById("imageKey").value;
+    let imgElement = document.getElementById("myImage");
+
+    let cachedBlob = await checkIndexedDB(key);
+    if (cachedBlob) {
+        console.log("Loaded from cache:", key);
+        imgElement.src = cachedBlob;
+    }
+}
+
+
+async function preloadData() {
+    document.getElementById("stage").style.display = "none";
+
+	loadZipWithUI("https://raw.githubusercontent.com/fbeilstein/topological_data_analysis/master/cosmology_explorer/generated_points.zip");
+    //loadZipWithUI("http://127.0.0.1:8080/data.zip");
+}
+
+
+function radio_callback(option) {
+    option = event.target.value; 
+            switch(option) {
+                case "option1":  plotData(jsonFiles["LLE_fake.json"]);  break;
+                case "option2":  plotData(jsonFiles["UMAP_fake.json"]); break;
+                case "option3":  plotData(jsonFiles["ISO_fake.json"]);  break;
+                case "option4":  plotData(jsonFiles["TSNE_fake.json"]); break;
+                case "option5":  plotData(jsonFiles["PCA_fake.json"]); break;
+            }            
+            return { x, y };
+        }
+
+</script>
+</body>
+</html>
