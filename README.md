@@ -2,6 +2,7 @@
 
 ## Lectures
 * [Lecture 1, Introduction to Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_1_introduction_to_topology.ipynb)
+* [Lecture 2, More on Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_2_more_on_topology.ipynb)
 
 ## Demos
 * [Persistent Homology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/persistent_homology.ipynb)
