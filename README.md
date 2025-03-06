@@ -4,6 +4,8 @@
 * [Lecture 1, Introduction to Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_1_introduction_to_topology.ipynb)
 * [Lecture 2, More on Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_2_more_on_topology.ipynb)
 * [Lecture 3, Even More Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_3_even_more_topology.ipynb)
+* [Lecture 4, Dimensionality Reduction (Manifold Learning)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_4_dimensionality_reduction.ipynb)
+
 
 ## Demos
 * [DECALS Galaxies Explorer](https://fbeilstein.github.io/topological_data_analysis/cosmology_explorer/DECALS_galaxies_explorer.html)
