@@ -5,6 +5,7 @@
 * [Lecture 2, More on Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_2_more_on_topology.ipynb)
 * [Lecture 3, Even More Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_3_even_more_topology.ipynb)
 * [Lecture 4, Dimensionality Reduction (Manifold Learning)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_4_dimensionality_reduction.ipynb)
+* [Lecture 5, More on Dimensionality Reduction (t-SNE, UMAP)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_5_tsne_umap.ipynb)
 
 
 ## Demos
