@@ -14,6 +14,7 @@
 <hr />
 
 * [Lecture 6, Persistence Homology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_6_persistence_homology.ipynb)
+* [Lecture 7, Persistence Homology Continued](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_7_persistence_homology_continued.ipynb)
 
 
 ## Demos
