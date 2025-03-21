@@ -8,7 +8,9 @@
 * [Lecture 5, More on Dimensionality Reduction (t-SNE, UMAP)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_5_tsne_umap.ipynb)
 
 <hr />
+
 **Midterm 1 (Dimensionality Reduction):** [Problem](https://github.com/fbeilstein/topological_data_analysis/blob/master/midterm_1.md)
+
 <hr />
 
 * [Lecture 6, Persistence Homology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_6_persistence_homology.ipynb)
