@@ -13,8 +13,10 @@
 
 <hr />
 
-* [Lecture 6, Persistence Homology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_6_persistence_homology.ipynb)
-* [Lecture 7, Persistence Homology Continued](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_7_persistence_homology_continued.ipynb)
+* [Lecture 6, Persistence Homology (Motivation, Geometric Simplicial Complex)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_6_persistence_homology_motivation_geometric_simplicial_complex.ipynb)
+* [Lecture 7, Persistence Homology (Algebra on Simplicial Complex)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_7_persistence_homology_algebra_on_simplicial_complex.ipynb)
+* [Lecture 8, Persistence Homology (Boundary Operator)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_8_persistence_homology_boundary_operator.ipynb)
+
 
 
 ## Demos
