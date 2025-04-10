@@ -16,7 +16,7 @@
 * [Lecture 6, Persistence Homology (Motivation, Geometric Simplicial Complex)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_6_persistence_homology_motivation_geometric_simplicial_complex.ipynb)
 * [Lecture 7, Persistence Homology (Algebra on Simplicial Complex)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_7_persistence_homology_algebra_on_simplicial_complex.ipynb)
 * [Lecture 8, Persistence Homology (Boundary Operator)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_8_persistence_homology_boundary_operator.ipynb)
-
+* [Lecture 9, Persistence Homology (Chech and Ripps Complexes)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_9_persistence_homology_complexes.ipynb)
 
 
 ## Demos
