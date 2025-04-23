@@ -18,6 +18,7 @@
 * [Lecture 8, Persistence Homology (Boundary Operator)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_8_persistence_homology_boundary_operator.ipynb)
 * [Lecture 9, Persistence Homology (Chech and Ripps Complexes)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_9_persistence_homology_complexes.ipynb)
 * [Lecture 10, GUDHI library](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_10_gudhi.ipynb)
+* [Lecture 11, Wasserstein Distance](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_11_wasserstein_distance.ipynb)
 
 
 ## Demos
