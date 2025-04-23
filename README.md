@@ -1,11 +1,11 @@
 # Topological Data Analysis
 
 ## Lectures
-* [Lecture 1, Introduction to Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_1_introduction_to_topology.ipynb)
-* [Lecture 2, More on Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_2_more_on_topology.ipynb)
-* [Lecture 3, Even More Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_3_even_more_topology.ipynb)
-* [Lecture 4, Dimensionality Reduction (Manifold Learning)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_4_dimensionality_reduction.ipynb)
-* [Lecture 5, More on Dimensionality Reduction (t-SNE, UMAP)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_5_tsne_umap.ipynb)
+* [Lecture 1, Introduction to Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_01_introduction_to_topology.ipynb)
+* [Lecture 2, More on Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_02_more_on_topology.ipynb)
+* [Lecture 3, Even More Topology](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_03_even_more_topology.ipynb)
+* [Lecture 4, Dimensionality Reduction (Manifold Learning)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_04_dimensionality_reduction.ipynb)
+* [Lecture 5, More on Dimensionality Reduction (t-SNE, UMAP)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_05_tsne_umap.ipynb)
 
 <hr />
 
@@ -13,11 +13,18 @@
 
 <hr />
 
-* [Lecture 6, Persistence Homology (Motivation, Geometric Simplicial Complex)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_6_persistence_homology_motivation_geometric_simplicial_complex.ipynb)
-* [Lecture 7, Persistence Homology (Algebra on Simplicial Complex)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_7_persistence_homology_algebra_on_simplicial_complex.ipynb)
-* [Lecture 8, Persistence Homology (Boundary Operator)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_8_persistence_homology_boundary_operator.ipynb)
-* [Lecture 9, Persistence Homology (Chech and Ripps Complexes)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_9_persistence_homology_complexes.ipynb)
+* [Lecture 6, Persistent Homology (Motivation, Geometric Simplicial Complex)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_06_motivation_geometric_simplicial_complex.ipynb)
+* [Lecture 7, Persistent Homology (Algebra on Simplicial Complex)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_07_algebra_on_simplicial_complex.ipynb)
+* [Lecture 8, Persistent Homology (Boundary Operator)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_08_boundary_operator.ipynb)
+* [Lecture 9, Persistent Homology (Chech and Ripps Complexes)](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_09_cech_and_ripps_complexes.ipynb)
 * [Lecture 10, GUDHI library](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_10_gudhi.ipynb)
+
+<hr />
+
+**Midterm 2 (Persistent Homology):** [Problem](https://github.com/fbeilstein/topological_data_analysis/blob/master/midterm_2.md)
+
+<hr />
+
 * [Lecture 11, Wasserstein Distance](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_11_wasserstein_distance.ipynb)
 
 
