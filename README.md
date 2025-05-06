@@ -27,6 +27,7 @@
 
 * [Lecture 11, Wasserstein Distance](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_11_wasserstein_distance.ipynb)
 * [Lecture 12, Discrete Morse Theory](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_12_discrete_morse_theory.ipynb)
+* [Lecture 13, Reeb Graph and Mapper](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_13_reeb_graph_and_mapper.ipynb)
 
 
 ## Demos
