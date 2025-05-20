@@ -29,6 +29,7 @@
 * [Lecture 12, Discrete Morse Theory](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_12_discrete_morse_theory.ipynb)
 * [Lecture 13, Reeb Graph and Mapper](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_13_reeb_graph_and_mapper.ipynb)
 * [Lecture 14, ToMATo Algorithm](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_14_tomato.ipynb)
+* [Lecture 15, Topological Features](https://colab.research.google.com/github/fbeilstein/topological_data_analysis/blob/master/lecture_15_topological_features.ipynb)
 
 ## Demos
 * [DECALS Galaxies Explorer](https://fbeilstein.github.io/topological_data_analysis/cosmology_explorer/DECALS_galaxies_explorer.html)
