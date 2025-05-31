@@ -26,9 +26,9 @@ for i,d in enumerate(downloads):
 X = np.vstack(X)
 y = np.hstack(y)
 ```
-* The data contains 40000 chunks of 1024 signal measurements that belong to one of the classes: `bpsk`, `qpsk`, `8psk`, `8QAM`, `16QAM`, the variable `class_code` defines the correspondence between the name and its code stored in `y`, the actual data is trored in `X`.
+* The data contains 40000 chunks of 1024 signal measurements that belong to one of the classes: `bpsk`, `qpsk`, `8psk`, `8QAM`, `16QAM`, the variable `class_code` defines the correspondence between the name and its code stored in `y`, the actual data is stored in `X`.
 * Transform the data into multidimensional features. At least Takens Embedding should be applicable, but you're free to choose any other method that you might think may be helpful.
-* Explore persistence diagrams. Can you find parameters such that diagrams for the same class look siilar, while different classes would be different?
+* Explore persistence diagrams. Can you find parameters such that diagrams for the same class look similar, while different classes would be different?
 * Use Wasserstein distance to quantify similarity/dissimilarity between diagrams.
 
 
